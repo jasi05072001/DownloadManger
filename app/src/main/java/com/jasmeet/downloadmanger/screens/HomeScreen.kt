@@ -16,6 +16,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.jasmeet.downloadmanger.homeScreenItems.HomeScreenItems
@@ -23,6 +24,7 @@ import com.jasmeet.downloadmanger.homeScreenItems.HomeScreenItems
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController) {
+    val context = LocalContext.current
 
     val homeScreenList = listOf(
         HomeScreenItems(
@@ -39,7 +41,10 @@ fun HomeScreen(navController: NavHostController) {
         ) ,
         HomeScreenItems(
             title = "View Downloads",
-            onClick = { navController.navigate(Screens.DownloadScreen.route) }
+            onClick = {
+                navController.navigate(Screens.DownloadScreen.route)
+
+            }
         )
     )
 

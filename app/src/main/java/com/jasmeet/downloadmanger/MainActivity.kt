@@ -1,14 +1,18 @@
 package com.jasmeet.downloadmanger
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jasmeet.downloadmanger.screens.ARTWORK_URL
 import com.jasmeet.downloadmanger.screens.DESCRIPTION
+import com.jasmeet.downloadmanger.screens.DRM_LICENCE_URL
 import com.jasmeet.downloadmanger.screens.DownloadScreen
 import com.jasmeet.downloadmanger.screens.DrmScreen
 import com.jasmeet.downloadmanger.screens.HlsScreen
@@ -39,7 +45,12 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private val requestPermissionLauncher =
-        this.registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ -> }
+        this.registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
+            }
+
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +77,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
     NavHost(
         navController = navController,
@@ -73,29 +85,26 @@ fun MainApp() {
     ){
         composable(route = Screens.HomeScreen.route){
             HomeScreen(navController = navController)
-//            val text = remember {
-//                mutableStateOf("")
-//            }
-//            Column {
-//                Text(text = "Home Screen")
-//                OutlinedTextField(value = text.value, onValueChange ={
-//                    text.value = it
-//                }
-//                )
-//                Button(onClick = {
-//                    navController.navigate(Screens.DownloadScreen.passId(text.value))
-//                }) {
-//                    Text(text = "Pass argument to next screen")
-//                }
-//            }
         }
+        composable(
+            route =Screens.DownloadScreen.route,
+            enterTransition = {
+                fadeIn() + slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+            },
+            exitTransition = {
+                fadeOut()+ slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+            }
+        ){
+            DownloadScreen(navController = navController)
+        }
+
         composable(
             route =Screens.DrmScreen.route,
             enterTransition = {
-                slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+                fadeIn() + slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             },
             exitTransition = {
-                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(1000, easing = FastOutLinearInEasing))
+                fadeOut()+ slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             }
         ){
             DrmScreen(navController = navController)
@@ -103,26 +112,24 @@ fun MainApp() {
         composable(
             route =Screens.HlsScreen.route,
             enterTransition = {
-                slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+                fadeIn() + slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             },
             exitTransition = {
-                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(1000, easing = FastOutLinearInEasing))
+                fadeOut() + slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             }
         ){
-
             HlsScreen(navController = navController)
         }
         composable(
            route = Screens.Mp4Screen.route,
             enterTransition = {
-                slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+                fadeIn() + slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             },
             exitTransition = {
-                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(1000, easing = FastOutLinearInEasing))
+                fadeOut() + slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             },
         ){
-            Mp4Screen(navController = navController, id = it.arguments?.getString(VIDEO_URL).toString(), title = it.arguments?.getString(
-                ARTWORK_URL).toString())
+            Mp4Screen(navController = navController)
         }
         composable(
             route = Screens.VideoPlayer.route,
@@ -152,46 +159,28 @@ fun MainApp() {
                     defaultValue = "0"
                     nullable = true
                 },
+                navArgument(DRM_LICENCE_URL){
+                    type = NavType.StringType
+                    defaultValue = "0"
+                    nullable = true
+                }
             ),
             enterTransition = {
-                slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+                fadeIn() + slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             },
             exitTransition = {
-                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(1000, easing = FastOutLinearInEasing))
+               fadeOut()+ slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             }
         ){
-            VideoPlayerScreen(navController = navController,videoUrl = it.arguments?.getString(VIDEO_URL),mimeType = it.arguments?.getString(MIME_TYPE),title = it.arguments?.getString(TITLE),description = it.arguments?.getString(DESCRIPTION),artworkUrl = it.arguments?.getString(ARTWORK_URL))
+            VideoPlayerScreen(
+                navController = navController,
+                videoUrl = it.arguments?.getString(VIDEO_URL),
+                mimeType = it.arguments?.getString(MIME_TYPE),
+                title = it.arguments?.getString(TITLE),
+                description = it.arguments?.getString(DESCRIPTION),
+                artworkUrl = it.arguments?.getString(ARTWORK_URL),
+                drmLicence = it.arguments?.getString(DRM_LICENCE_URL)
+            )
         }
-        composable(
-            route = Screens.DownloadScreen.route,
-            enterTransition = {
-                slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
-            },
-            exitTransition = {
-                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(1000, easing = FastOutLinearInEasing))
-            }
-        ){
-            DownloadScreen(navController = navController)
-        }
-//        composable(
-//            route =Screens.DownloadScreen.route,
-//            arguments = listOf(
-//                navArgument(DETAILED_ARGUMENT_KEY){
-//                    type = NavType.StringType
-//                    defaultValue = "0"
-//                    nullable = true
-//                },
-//            )
-//        ){
-//
-//            Column(modifier = Modifier
-//                .fillMaxSize()
-//                .background(Color.White)) {
-//                Text(text = it.arguments?.getString(DETAILED_ARGUMENT_KEY).toString(), fontSize = 18.sp, color = Color.Black)
-//            }
-//        }
-
     }
-
-
 }

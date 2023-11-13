@@ -18,8 +18,10 @@ import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import com.jasmeet.downloadmanger.R
 import com.jasmeet.downloadmanger.downloadTracker.DownloadTracker
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Runnable
 import org.chromium.net.CronetEngine
 import java.io.File
+import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -136,10 +138,11 @@ object DownloadUtil {
                 getDatabaseProvider(context),
                 getDownloadCache(context),
                 getHttpDataSourceFactory(context),
-                Executors.newFixedThreadPool(6)
+                Executor(Runnable::run)
             ).apply {
-                maxParallelDownloads = 2
+                maxParallelDownloads = 10
             }
+            downloadManager.minRetryCount = 5
             downloadTracker =
                 DownloadTracker(context, getHttpDataSourceFactory(context), downloadManager)
         }

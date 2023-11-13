@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="dialog_option">%1$dp - %2$s</string>
+    <string name="item_download_percentage">Size: %1$s | Progress: %2$d %%</string>
     <string name="exo_download_queued">Download in queue</string>
     <string name="exo_download_completed">Download completed</string>
     <string name="exo_download_downloading">Downloading…</string>

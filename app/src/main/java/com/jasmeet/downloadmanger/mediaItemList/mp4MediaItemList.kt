@@ -59,38 +59,4 @@ val mp4ListMediaItem: List<MediaItem> = listOf(
         .setTag(MediaItemTag(-1, "For Bigger Blazes"))
         .build(),
 
-    MediaItem.Builder()
-        .setUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4")
-        .setMimeType(MimeTypes.APPLICATION_MP4)
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle("For Bigger Escape")
-                .setDescription(
-                    "For Bigger Escape is a short film by producer Ton Roosendaal and director Ian Hubert. " +
-                            "It was made using new enhancements to the visual effects capabilities of Blender, a free and open source software application for animation. " +
-                            "The film was funded by the Blender Foundation, donations from the Blender community, pre-sales of the film's DVD and commercial sponsorship."
-                )
-                .setArtworkUri(Uri.parse("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjflj-1oZ6LzJWiTh71LZYfiHDi5PolDX1_4ns4MbwUiqqgSb9qtN7eBnstnyJou4Lf38&usqp=CAU"))
-                .build()
-        )
-        .setTag(MediaItemTag(-1, "For Bigger Escape"))
-        .build(),
-
-    MediaItem.Builder()
-        .setUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4")
-        .setMimeType(MimeTypes.APPLICATION_MP4)
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle("For Bigger Joyrides")
-                .setDescription(
-                    "For Bigger Joyrides is a short film by producer Ton Roosendaal and director Ian Hubert. " +
-                            "It was made using new enhancements to the visual effects capabilities of Blender, a free and open source software application for animation. " +
-                            "The film was funded by the Blender Foundation, donations from the Blender community, pre-sales of the film's DVD and commercial sponsorship."
-                )
-                .setArtworkUri(Uri.parse("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjflj-1oZ6LzJWiTh71LZYfiHDi5PolDX1_4ns4MbwUiqqgSb9qtN7eBnstnyJou4Lf38&usqp=CAU"))
-                .build()
-        )
-        .setTag(MediaItemTag(-1, "For Bigger Joyrides"))
-        .build(),
-
     )

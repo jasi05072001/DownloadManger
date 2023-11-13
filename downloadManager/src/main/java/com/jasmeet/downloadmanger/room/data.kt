@@ -18,8 +18,11 @@ data class DownloadedVideoData (
     @ColumnInfo(name = "VideoDescription")
     var description:String ?= "Not Available",
 
-    @PrimaryKey
     @ColumnInfo(name = "VideoUrl")
-    var url :String
+    var url :String,
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
+    var id : Int = 0
 )
 

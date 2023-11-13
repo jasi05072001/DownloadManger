@@ -87,6 +87,8 @@ fun DrmScreen(navController: NavHostController) {
                             val encodedVideoUrl = URLEncoder.encode(it.localConfiguration?.uri.toString(), "UTF-8")
                             val encodedArtWorkUrl = URLEncoder.encode(it.mediaMetadata.artworkUri.toString(), "UTF-8")
 
+                            val drmLicenceUrl = URLEncoder.encode(it.localConfiguration?.drmConfiguration?.licenseUri.toString(), "UTF-8")
+
                             navController.navigate(
                                 Screens.VideoPlayer.passArguments(
                                     videoUrl = encodedVideoUrl,
@@ -94,7 +96,7 @@ fun DrmScreen(navController: NavHostController) {
                                     title = it.mediaMetadata.title.toString(),
                                     artworkUrl = encodedArtWorkUrl,
                                     description = it.mediaMetadata.description.toString(),
-
+                                    drmLicence = drmLicenceUrl
                                     )
                             )
                         }

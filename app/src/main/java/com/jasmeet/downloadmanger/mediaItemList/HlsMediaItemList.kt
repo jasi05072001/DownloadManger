@@ -25,13 +25,13 @@ val hlsListMediaItem: List<MediaItem> = listOf(
 
 
     MediaItem.Builder()
-        .setUri("https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8")
+        .setUri("https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8")
         .setMimeType(MimeTypes.APPLICATION_M3U8)
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle("Animation Movie")
                 .setDescription(
-                    "Sintel is an independently produced short film, initiated by the Blender Foundation as a means to further improve and validate the free/open source 3D creation suite Blender. " +
+                    "Sintel is an independently produced short film, initiated by the Blender Foundation as a means to further improve and validate the free,open source 3D creation suite Blender. " +
                             "With initial funding provided by 1000s of donations via the internet community, it has again proven to be a viable development model for both open 3D technology as for independent animation film."
                 )
                 .setArtworkUri(Uri.parse("https://cdn.pixabay.com/photo/2016/12/15/20/21/texture-1909992_1280.jpg"))
@@ -56,40 +56,4 @@ val hlsListMediaItem: List<MediaItem> = listOf(
         )
         .setTag(MediaItemTag(-1, "Big Bunny"))
         .build(),
-
-    MediaItem.Builder()
-        .setUri("https://d1gnaphp93fop2.cloudfront.net/videos/multiresolution/rendition_new10.m3u8")
-        .setMimeType(MimeTypes.APPLICATION_M3U8)
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle("Pipe Dream Haiti")
-                .setDescription(
-                    "Pipe Dream Haiti is a short film about bringing clean water to Haiti. " +
-                            "The film follows former pro surfer Jon Rose and his mission to bring clean water access to the people of Haiti's forgotten surf village, " +
-                            "Cote de Fer. The film documents the journey of Jon and his organization, Waves For Water, " +
-                            "as they distribute water filters throughout the small Caribbean country. "
-                )
-                .setArtworkUri(Uri.parse("https://cdn.pixabay.com/photo/2016/12/15/20/21/texture-1909992_1280.jpg"))
-                .build()
-        )
-        .setTag(MediaItemTag(-1, "Pipe Dream Haiti"))
-        .build(),
-
-    MediaItem.Builder()
-        .setUri("https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")
-        .setMimeType(MimeTypes.APPLICATION_M3U8)
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle("Caminandes 4k")
-                .setDescription(
-                    "Caminandes is a series of short 3D animated films about the adventures of Koro the Llama and his friends. " +
-                            "In this episode called Llamigos (2016) Koro discovers that friendship is above any difference."
-                )
-                .setArtworkUri(Uri.parse("https://cdn.pixabay.com/photo/2016/12/15/20/21/texture-1909992_1280.jpg"))
-                .build()
-        )
-        .setTag(MediaItemTag(-1, "Caminandes 4k"))
-        .build(),
-
-
-    )
+)

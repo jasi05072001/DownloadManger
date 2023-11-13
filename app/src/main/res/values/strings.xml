@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">DownloadManger</string>
+    <string name="item_download_percentage">Size: %1$s | Progress: %2$d %%</string>
+
 </resources>

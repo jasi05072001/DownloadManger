@@ -86,7 +86,8 @@ class MyDownloadService : DownloadService(
                 Download.STATE_COMPLETED -> {
                     notificationHelper.buildDownloadCompletedNotification(
                         context,
-                        R.drawable.download_done,  /* contentIntent = */
+                        R.drawable.download_done,
+                        /* contentIntent = */
                         null,
                         Util.fromUtf8Bytes(download.request.data)
                     )
@@ -95,7 +96,8 @@ class MyDownloadService : DownloadService(
                 Download.STATE_FAILED -> {
                     notificationHelper.buildDownloadFailedNotification(
                         context,
-                        R.drawable.download_done,  /* contentIntent = */
+                        R.drawable.error,
+                        /* contentIntent = */
                         null,
                         Util.fromUtf8Bytes(download.request.data)
                     )

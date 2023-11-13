@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.StatFs
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.media3.common.C
 import androidx.media3.common.Format
@@ -257,6 +258,7 @@ class DownloadTracker(
                 availableBytesLeft +=
                     Util.fromUtf8Bytes(download.request.data).toLong() - download.bytesDownloaded
             }
+
         }
 
         override fun onDownloadRemoved(downloadManager: DownloadManager, download: Download) {
@@ -272,6 +274,7 @@ class DownloadTracker(
                 Util.fromUtf8Bytes(download.request.data).toLong()
             }
         }
+
     }
 
     /**
@@ -398,11 +401,6 @@ class DownloadTracker(
                         dao.insert(entity)
                     }
 
-
-
-                    //log the value of height and width
-                    Log.e("Value in db11", "height: $height")
-
                     helper.clearTrackSelections(0)
                     helper.addTrackSelection(0, qualitySelected)
                     val estimatedContentLength: Long =
@@ -444,9 +442,9 @@ class DownloadTracker(
                     )
 
 
-//                    coroutineScope.launch {
-//                        dao.insert(entity)
-//                    }
+                    coroutineScope.launch {
+                        dao.insert(entity)
+                    }
 
                     val savedQuality = DownloadUtil.getQualitySelected(context)
                     val selectedFormat = findSelectedFormat(formatDownloadable, savedQuality)
@@ -492,9 +490,9 @@ class DownloadTracker(
                     )
 
 
-//                    coroutineScope.launch {
-//                        dao.insert(entity)
-//                    }
+                    coroutineScope.launch {
+                        dao.insert(entity)
+                    }
 
                     dismiss()
                     val closestUserQuality = returnClosestElement(qualityList, userQuality!!)
@@ -555,10 +553,11 @@ class DownloadTracker(
         }
 
         override fun onPrepareError(helper: DownloadHelper, e: IOException) {
-            throw FailedToDownloadException("Failed to download")
+            throw FailedToDownloadException("Failed to download: ${e.message}")
         }
 
         private fun startDownload(downloadRequest: DownloadRequest = buildDownloadRequest()) {
+            Toast.makeText(context, "Downloading", Toast.LENGTH_SHORT).show()
 
             DownloadService.sendAddDownload(
                 applicationContext,
