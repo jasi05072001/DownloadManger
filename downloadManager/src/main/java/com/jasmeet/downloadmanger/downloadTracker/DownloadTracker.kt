@@ -152,7 +152,7 @@ class DownloadTracker(
             )
     }
     @ExperimentalStdlibApi
-    fun removeDownload(uri: Uri?, videoId: String) {
+    fun removeDownload(uri: Uri?) {
         val download = downloads[uri]
         download?.let {
             DownloadService.sendRemoveDownload(
@@ -164,7 +164,8 @@ class DownloadTracker(
         }
         val coroutineScope = CoroutineScope(Dispatchers.IO)
         coroutineScope.launch {
-            dao.deleteVideoDataById(videoId)
+            dao.deleteVideoDataById(uri
+                .toString())
         }
     }
 

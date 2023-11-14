@@ -18,7 +18,7 @@ val drmListMediaItem: List<MediaItem> = listOf(
                 "Tears of Steel is a short film by producer Ton Roosendaal and director Ian Hubert. " +
                         "It was made using new enhancements to the visual effects capabilities of Blender, a free and open source software application for animation. " +
                         "The film was funded by the Blender Foundation, donations from the Blender community, pre-sales of the film's DVD and commercial sponsorship.")
-            .setArtworkUri(Uri.parse("https://cdn.pixabay.com/photo/2017/07/03/20/17/colorful-2468874_640.jpg"))
+            .setArtworkUri(Uri.parse("https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"))
             .build()
         ).setTag(MediaItemTag(-1, "Clear(WebM, VP9)"))
         .build(),
@@ -27,18 +27,13 @@ val drmListMediaItem: List<MediaItem> = listOf(
     MediaItem.Builder()
         .setUri("https://storage.googleapis.com/exoplayer-test-media-0/dash-multiple-base-urls/manifest.mpd")
         .setMimeType(MimeTypes.APPLICATION_MPD)
-//        .setDrmConfiguration(
-//            MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
-//                .setLicenseUri("https://proxy.uat.widevine.com/proxy?video_id=2015_tears&provider=widevine_test")
-//                .build()
-//        )
         .setMediaMetadata(MediaMetadata.Builder()
             .setTitle("Licensed-H264(cenc)")
             .setDescription(
                 "Tears of Steel is a short film by producer Ton Roosendaal and director Ian Hubert. " +
                         "It was made using new enhancements to the visual effects capabilities of Blender, a free and open source software application for animation. " +
                         "The film was funded by the Blender Foundation, donations from the Blender community, pre-sales of the film's DVD and commercial sponsorship.")
-            .setArtworkUri(Uri.parse("https://cdn.pixabay.com/photo/2017/07/03/20/17/colorful-2468874_640.jpg"))
+            .setArtworkUri(Uri.parse("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"))
             .build()
         )
         .setTag(MediaItemTag(-1, "Licensed-H264(cenc)"))
@@ -58,7 +53,7 @@ val drmListMediaItem: List<MediaItem> = listOf(
                 "Tears of Steel is a short film by producer Ton Roosendaal and director Ian Hubert. " +
                         "It was made using new enhancements to the visual effects capabilities of Blender, a free and open source software application for animation. " +
                         "The film was funded by the Blender Foundation, donations from the Blender community, pre-sales of the film's DVD and commercial sponsorship.")
-            .setArtworkUri(Uri.parse("https://cdn.pixabay.com/photo/2017/07/03/20/17/colorful-2468874_640.jpg"))
+            .setArtworkUri(Uri.parse("https://images.unsplash.com/photo-1614149162883-504ce4d13909?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"))
             .build()
         )
         .setTag(MediaItemTag(-1, "Licensed-H265(cenc)"))

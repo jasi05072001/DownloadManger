@@ -138,11 +138,10 @@ object DownloadUtil {
                 getDatabaseProvider(context),
                 getDownloadCache(context),
                 getHttpDataSourceFactory(context),
-                Executor(Runnable::run)
+                Executors.newFixedThreadPool(8)
             ).apply {
-                maxParallelDownloads = 10
+                maxParallelDownloads = 2
             }
-            downloadManager.minRetryCount = 5
             downloadTracker =
                 DownloadTracker(context, getHttpDataSourceFactory(context), downloadManager)
         }

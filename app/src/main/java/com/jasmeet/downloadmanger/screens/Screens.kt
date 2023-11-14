@@ -32,6 +32,29 @@ sealed class Screens(val route :String){
         }
 
     }
+
+    data object OfflineVideoPlayer : Screens(
+        "videoPlayer/{$VIDEO_URL}/{$ARTWORK_URL}/{$MIME_TYPE}/{$TITLE}/{$DESCRIPTION}?{$DRM_LICENCE_URL}"
+    ){
+        fun passArguments(
+            videoUrl : String,
+            artworkUrl : String,
+            mimeType : String,
+            title : String,
+            description : String,
+            drmLicence: String? = null
+        ) : String{
+            return this.route
+                .replace("{$VIDEO_URL}",videoUrl)
+                .replace("{$ARTWORK_URL}",artworkUrl)
+                .replace("{$MIME_TYPE}",mimeType)
+                .replace("{$TITLE}",title)
+                .replace("{$DESCRIPTION}",description)
+                .replace("{$DRM_LICENCE_URL}",drmLicence ?: "")
+
+        }
+
+    }
     data object DrmScreen : Screens("drmScreen")
     data object HlsScreen : Screens("hlsScreen")
     data object Mp4Screen : Screens("mp4Screen")

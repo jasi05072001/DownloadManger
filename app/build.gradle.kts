@@ -63,8 +63,6 @@ dependencies {
     implementation(project(mapOf("path" to ":downloadManager")))
     implementation(libs.appcompat)
     implementation(libs.material)
-    implementation(libs.constraintlayout)
-    implementation(libs.androidx.recyclerview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -81,6 +79,9 @@ dependencies {
     implementation (libs.media3Dash)
 
     implementation (libs.livedata)
+
+    implementation(libs.lottie)
+
 
 
 

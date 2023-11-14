@@ -3,13 +3,22 @@ package com.jasmeet.downloadmanger.screens
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -18,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -42,6 +52,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -57,7 +68,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 )
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
-fun VideoPlayerScreen(
+fun OfflineVideoPlayerScreen(
     navController: NavHostController,
     videoUrl: String?,
     mimeType: String?,
@@ -71,6 +82,13 @@ fun VideoPlayerScreen(
     val isArtworkVisible = rememberSaveable {
         mutableStateOf(true)
     }
+
+    val isDescriptionVisible = rememberSaveable {
+        mutableStateOf(true)
+    }
+
+    val downloadRequest : DownloadRequest? = DownloadUtil.getDownloadTracker(context)
+        .getDownloadRequest(Uri.parse(videoUrl))
 
     val mediaItem =
         if (drmLicence != null) {
@@ -114,26 +132,13 @@ fun VideoPlayerScreen(
                 DefaultMediaSourceFactory(DownloadUtil.getReadOnlyDataSourceFactory(context))
             ).build().apply {
                 playWhenReady = false
-                setMediaItem(mediaItem)
+                setMediaItem(maybeSetDownloadProperties(mediaItem,downloadRequest),false)
 
                 prepare()
                 addListener(
                     object : Player.Listener {
                         override fun onPlayerError(error: PlaybackException) {
                             Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
-//                            isDownloadBtnVisible.value = false
-                        }
-
-                        override fun onPlaybackStateChanged(playbackState: Int) {
-                            super.onPlaybackStateChanged(playbackState)
-                            when (playbackState) {
-                                Player.STATE_READY -> {
-//                                    isDownloadBtnVisible.value = true
-                                }
-
-                                else ->{}
-
-                            }
                         }
                     }
                 )
@@ -182,12 +187,10 @@ fun VideoPlayerScreen(
                             setShowSubtitleButton(true)
                             resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                             controllerAutoShow = false
-
                         }
                     }
                 )
                 if (isArtworkVisible.value) {
-
                     Box(
                         modifier = Modifier
                             .height(LocalConfiguration.current.screenHeightDp.dp * 0.3f),
@@ -219,61 +222,29 @@ fun VideoPlayerScreen(
                 }
 
             }
+            Spacer(modifier = Modifier.height(15.dp))
 
-            Button(onClick = {
-                try {
-                    if (DownloadUtil
-                            .getDownloadTracker(context)
-                            .isDownloaded(mediaItem)
-                    ) {
-                        Toast
-                            .makeText(
-                                context,
-                                "Already Downloaded",
-                                Toast.LENGTH_SHORT
-                            )
-                            .show()
-                    } else {
-                        val item = mediaItem
-                            .buildUpon()
-                            .setTag(
-                                (mediaItem.localConfiguration?.tag as MediaItemTag).copy(
-                                    duration = exoPlayer.duration
-                                )
-                            )
-                            .build()
+            TextButton(onClick = {
+                isDescriptionVisible.value = !isDescriptionVisible.value
 
-                        if (!DownloadUtil
-                                .getDownloadTracker(context)
-                                .hasDownload(item.localConfiguration?.uri)
-                        ) {
-                            DownloadUtil
-                                .getDownloadTracker(context)
-                                .toggleDownloadDialogHelper(
-                                    context,
-                                    item,
-                                    videoId = "null"
-                                )
-                        }
-                    }
-                } catch (e: Exception) {
-                    Toast
-                        .makeText(
-                            context,
-                            e.message.toString(),
-                            Toast.LENGTH_SHORT
-                        )
-                        .show()
-                    Log.d("error", e.message.toString())
-                }
             }) {
-                Text(text = "Download")
-
+                Text(text = "Description")
             }
+
+            AnimatedVisibility(
+                visible = isDescriptionVisible.value,
+                enter = fadeIn()+ expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(text = description ?: "No Description", modifier = Modifier.padding(all = 5.dp))
+
+        }
+
         }
     }
-
-
     DisposableEffect(
         key1 = Unit,
         effect = {
@@ -284,4 +255,25 @@ fun VideoPlayerScreen(
     )
 
 
+}
+
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+fun  maybeSetDownloadProperties(mediaItem: MediaItem, downloadRequest: DownloadRequest?): MediaItem {
+    if (downloadRequest == null) {
+        return mediaItem
+    }
+    val builder = mediaItem.buildUpon()
+        .setMediaId(downloadRequest.id)
+        .setUri(downloadRequest.uri)
+        .setCustomCacheKey(downloadRequest.customCacheKey)
+        .setMimeType(downloadRequest.mimeType)
+        .setStreamKeys(downloadRequest.streamKeys)
+
+    val drmConfiguration = mediaItem.localConfiguration!!.drmConfiguration
+    if (drmConfiguration != null) {
+        builder.setDrmConfiguration(
+            drmConfiguration.buildUpon().setKeySetId(downloadRequest.keySetId).build()
+        )
+    }
+    return builder.build()
 }

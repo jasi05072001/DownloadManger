@@ -161,7 +161,7 @@ fun DrmScreen(navController: NavHostController) {
                             Icon(
                                 imageVector = ImageVector.vectorResource(R.drawable.offline),
                                 contentDescription = null,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(32.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))

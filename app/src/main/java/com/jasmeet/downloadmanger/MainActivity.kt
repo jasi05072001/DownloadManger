@@ -35,6 +35,7 @@ import com.jasmeet.downloadmanger.screens.HlsScreen
 import com.jasmeet.downloadmanger.screens.HomeScreen
 import com.jasmeet.downloadmanger.screens.MIME_TYPE
 import com.jasmeet.downloadmanger.screens.Mp4Screen
+import com.jasmeet.downloadmanger.screens.OfflineVideoPlayerScreen
 import com.jasmeet.downloadmanger.screens.Screens
 import com.jasmeet.downloadmanger.screens.TITLE
 import com.jasmeet.downloadmanger.screens.VIDEO_URL
@@ -173,6 +174,58 @@ fun MainApp() {
             }
         ){
             VideoPlayerScreen(
+                navController = navController,
+                videoUrl = it.arguments?.getString(VIDEO_URL),
+                mimeType = it.arguments?.getString(MIME_TYPE),
+                title = it.arguments?.getString(TITLE),
+                description = it.arguments?.getString(DESCRIPTION),
+                artworkUrl = it.arguments?.getString(ARTWORK_URL),
+                drmLicence = it.arguments?.getString(DRM_LICENCE_URL)
+            )
+        }
+
+        composable(
+            route = Screens.OfflineVideoPlayer.route,
+            arguments = listOf(
+                navArgument(VIDEO_URL){
+                    type = NavType.StringType
+                    defaultValue = "0"
+                    nullable = true
+                },
+                navArgument(ARTWORK_URL){
+                    type = NavType.StringType
+                    defaultValue = "0"
+                    nullable = true
+                },
+                navArgument(MIME_TYPE){
+                    type = NavType.StringType
+                    defaultValue = "0"
+                    nullable = true
+                },
+                navArgument(TITLE){
+                    type = NavType.StringType
+                    defaultValue = "0"
+                    nullable = true
+                },
+                navArgument(DESCRIPTION){
+                    type = NavType.StringType
+                    defaultValue = "0"
+                    nullable = true
+                },
+                navArgument(DRM_LICENCE_URL){
+                    type = NavType.StringType
+                    defaultValue = "0"
+                    nullable = true
+                }
+            ),
+            enterTransition = {
+                fadeIn() + slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+            },
+            exitTransition = {
+                fadeOut()+ slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+            }
+        ){
+            OfflineVideoPlayerScreen(
                 navController = navController,
                 videoUrl = it.arguments?.getString(VIDEO_URL),
                 mimeType = it.arguments?.getString(MIME_TYPE),
