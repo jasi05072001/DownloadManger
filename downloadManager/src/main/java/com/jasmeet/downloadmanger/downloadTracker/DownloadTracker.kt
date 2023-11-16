@@ -240,9 +240,28 @@ class DownloadTracker(
                     httpDataSourceFactory
                 )
             }
-            else -> DownloadHelper.forMediaItem(applicationContext, mediaItem)
+            else -> {
+                otherDownloads(mediaItem)
+            }
         }
     }
+
+    private fun otherDownloads(mediaItem: MediaItem):DownloadHelper{
+
+        val entity = DownloadedVideoData(
+            heading = mediaItem.mediaMetadata.title.toString(),
+            thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+            url = mediaItem.localConfiguration?.uri.toString(),
+            description = mediaItem.mediaMetadata.description.toString(),
+        )
+
+        coroutineScope.launch {
+            dao.insert(entity)
+        }
+
+        return  DownloadHelper.forMediaItem(applicationContext, mediaItem)
+    }
+
 
     private inner class DownloadManagerListener : DownloadManager.Listener {
         override fun onDownloadChanged(
@@ -394,8 +413,9 @@ class DownloadTracker(
                         thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
                         url = mediaItem.localConfiguration?.uri.toString(),
                         description = mediaItem.mediaMetadata.description.toString(),
+                        drmLicenceUrl = mediaItem.localConfiguration?.drmConfiguration?.licenseUri.toString()
 
-                    )
+                        )
 
 
                     coroutineScope.launch {
@@ -439,8 +459,9 @@ class DownloadTracker(
                         thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
                         url =  mediaItem.localConfiguration?.uri.toString(),
                         description = mediaItem.mediaMetadata.description.toString(),
+                        drmLicenceUrl = mediaItem.localConfiguration?.drmConfiguration?.licenseUri.toString()
 
-                    )
+                        )
 
 
                     coroutineScope.launch {
@@ -486,7 +507,8 @@ class DownloadTracker(
                         heading = mediaItem.mediaMetadata.title.toString(),
                         thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
                         url =  mediaItem.localConfiguration?.uri.toString(),
-                        description = mediaItem.mediaMetadata.description.toString()
+                        description = mediaItem.mediaMetadata.description.toString(),
+                        drmLicenceUrl = mediaItem.localConfiguration?.drmConfiguration?.licenseUri.toString()
 
                     )
 

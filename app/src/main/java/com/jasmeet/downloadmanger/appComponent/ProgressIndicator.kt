@@ -11,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,7 +37,10 @@ import com.jasmeet.downloadmanger.R
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProgressIndicator(progress :Float) {
+fun ProgressIndicator(
+    progress :Float,
+    onClick: () -> Unit = {}
+) {
 
 
     val animatedProgress = remember { Animatable(initialValue = progress) }
@@ -82,6 +86,9 @@ fun ProgressIndicator(progress :Float) {
     Box (contentAlignment = Alignment.Center, modifier = Modifier
         .clip(CircleShape)
         .background(Color.Transparent)
+        .clickable {
+            onClick()
+        }
     ){
         CircularProgressIndicator(
             progress = animatedProgress.value,

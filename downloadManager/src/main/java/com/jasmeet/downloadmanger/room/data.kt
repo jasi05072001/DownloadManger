@@ -21,6 +21,9 @@ data class DownloadedVideoData (
     @ColumnInfo(name = "VideoUrl")
     var url :String,
 
+    @ColumnInfo(name = "drmLicence")
+    var drmLicenceUrl :String ?= null,
+
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     var id : Int = 0

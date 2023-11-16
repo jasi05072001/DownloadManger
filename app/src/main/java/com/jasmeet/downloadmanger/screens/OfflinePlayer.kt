@@ -62,6 +62,7 @@ import com.jasmeet.downloadmanger.R
 import com.jasmeet.downloadmanger.utils.DownloadUtil
 import com.jasmeet.downloadmanger.utils.MediaItemTag
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.net.URLDecoder
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class,
     ExperimentalMaterial3Api::class
@@ -104,7 +105,9 @@ fun OfflineVideoPlayerScreen(
                 )
                 .setDrmConfiguration(
                     MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
-                        .setLicenseUri(drmLicence)
+                        .setLicenseUri(Uri.parse(
+                            URLDecoder.decode(drmLicence, "UTF-8")
+                        ))
                         .build()
                 )
                 .setTag(MediaItemTag(-1, title ?:"Video Player"))

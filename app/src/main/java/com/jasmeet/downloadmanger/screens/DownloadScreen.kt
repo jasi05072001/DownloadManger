@@ -1,5 +1,7 @@
 package com.jasmeet.downloadmanger.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -8,23 +10,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,10 +46,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -64,6 +66,7 @@ import com.jasmeet.downloadmanger.room.DownloadedVideoData
 import com.jasmeet.downloadmanger.utils.DownloadUtil
 import com.jasmeet.downloadmanger.viewModel.OfflineVideoViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
@@ -73,7 +76,7 @@ import java.net.URLEncoder
 @Composable
 fun  DownloadScreen(navController: NavHostController) {
 
-    val offlineViewModel : OfflineVideoViewModel = viewModel()
+    val offlineViewModel: OfflineVideoViewModel = viewModel()
     val downloads = offlineViewModel.downloads.observeAsState(emptyList()).value
 
     val downloadedVideos = rememberSaveable { mutableStateOf(emptyList<DownloadedVideoData>()) }
@@ -86,11 +89,12 @@ fun  DownloadScreen(navController: NavHostController) {
     var isSheetOpen by rememberSaveable {
         mutableStateOf(false)
     }
+    val coroutineScope = rememberCoroutineScope()
 
 
     LaunchedEffect(
         key1 = true,
-        block ={
+        block = {
             offlineViewModel.startFlow(context = context)
             val downloadedVideoLiveData = getAllDownloadedVideos(context = context)
             downloadedVideos.value = downloadedVideoLiveData
@@ -99,7 +103,7 @@ fun  DownloadScreen(navController: NavHostController) {
 
     DisposableEffect(
         key1 = Unit,
-        effect ={
+        effect = {
             onDispose {
                 offlineViewModel.stopFlow()
             }
@@ -109,30 +113,16 @@ fun  DownloadScreen(navController: NavHostController) {
     val progress = offlineViewModel.downloadPercent.observeAsState(0f).value
     val per = progress.div(100)
 
-    val itemsBS = listOf(
-        BottomSheetItem(
-            title = "Pause Download",
-            icon = R.drawable.baseline_pause_circle_outline_24,
-            onClick = {
-                DownloadUtil.getDownloadTracker(context).pauseDownload(downloads[0].request.uri)
-                isPaused.value = true
-            }
-        ),
-        BottomSheetItem(
-            title = "Delete from Downloads",
-            icon = R.drawable.twotone_delete_24,
-            onClick = {
-                DownloadUtil.getDownloadTracker(context).removeDownload(downloads[0].request.uri)
-            }
-        )
-    )
 
     //this is the list of downloads and downloaded videos combined sorted by heading
-    val combineList = CombinedDownloadData(downloads,downloadedVideos.value).sortedBy { it.downloadedVideoData.heading }
+    val combineList = CombinedDownloadData(
+        downloads,
+        downloadedVideos.value
+    )
 
 
 
-    Scaffold (
+    Scaffold(
         topBar = {
             TopAppBar(
                 title = {
@@ -149,31 +139,30 @@ fun  DownloadScreen(navController: NavHostController) {
                 }
             )
         }
-    ){padding ->
+    ) { padding ->
 
-        if (combineList.isNotEmpty()){
+        if (combineList.isNotEmpty()) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
-            ){
-                items(combineList){
+            ) {
+                items(combineList) {
                     OutlinedCard(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
                             .padding(horizontal = 10.dp)
                             .fillMaxWidth()
-                            .clickable {
-                                isSheetOpen = !isSheetOpen
-
-                            }
                             .then(
                                 if (it.download.state == Download.STATE_COMPLETED)
                                     Modifier.combinedClickable(
                                         onClick = {
                                             val encodedMimeType =
-                                                URLEncoder.encode(it.download.request.mimeType, "UTF-8")
+                                                URLEncoder.encode(
+                                                    it.download.request.mimeType,
+                                                    "UTF-8"
+                                                )
                                             val encodedVideoUrl =
                                                 URLEncoder.encode(
                                                     it.download.request.uri.toString(),
@@ -184,6 +173,10 @@ fun  DownloadScreen(navController: NavHostController) {
                                                     it.downloadedVideoData.thumbnailUrl,
                                                     "UTF-8"
                                                 )
+                                            val encodedLicence = URLEncoder.encode(
+                                                it.downloadedVideoData.drmLicenceUrl.toString(),
+                                                "UTF-8"
+                                            )
 
                                             navController.navigate(
                                                 Screens.OfflineVideoPlayer.passArguments(
@@ -192,7 +185,12 @@ fun  DownloadScreen(navController: NavHostController) {
                                                     title = it.downloadedVideoData.heading.toString(),
                                                     artworkUrl = encodedArtWorkUrl,
                                                     description = it.downloadedVideoData.description.toString(),
+                                                    drmLicence = encodedLicence
                                                 )
+                                            )
+                                            Log.d(
+                                                "DownloadScreen",
+                                                "onClick: $encodedLicence"
                                             )
                                         },
                                         onLongClick = {
@@ -200,16 +198,17 @@ fun  DownloadScreen(navController: NavHostController) {
                                         }
                                     )
                                 else Modifier
-                            ),
+                            )
                     ) {
                         Row(
                             Modifier
                                 .fillMaxWidth()
+                                .height(100.dp)
                                 .clip(RoundedCornerShape(10.dp))
                         ) {
                             Box(
                                 Modifier
-                                    .height(90.dp)
+                                    .fillMaxHeight()
                                     .width(120.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -225,49 +224,48 @@ fun  DownloadScreen(navController: NavHostController) {
                                         ),
                                     contentScale = ContentScale.FillBounds
                                 )
-                                if (it.download.percentDownloaded <= 99f && !isPaused.value) {
+                                if (it.download.percentDownloaded <= 99f) {
                                     Column(
                                         modifier = Modifier,
                                         verticalArrangement = Arrangement.Center,
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
+
                                         ProgressIndicator(
                                             progress = it.download.percentDownloaded.div(
                                                 100f
-                                            )
+                                            ),
+                                            onClick = {
+                                                DownloadUtil.getDownloadTracker(context)
+                                                    .pauseDownload(it.download.request.uri)
+
+                                            }
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
 
                                         val percent =
-                                            it.download.percentDownloaded.toInt().toString() + "%"
+                                            it.download.percentDownloaded.toInt()
+                                                .toString() + "%"
                                         Text(text = percent, color = Color.White)
+                                    }
 
-                                    }
-                                }
-                                if (isPaused.value){
-                                    Column(
-                                        modifier = Modifier.clickable {
-                                                                      isPaused.value = !isPaused.value
-                                            DownloadUtil.getDownloadTracker(context).resumeDownload(it.download.request.uri)
-                                        },
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(text = "Paused", color = Color.White)
-                                    }
+
                                 }
                             }
 
                             Column(
-                                modifier = Modifier,
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 10.dp),
                             ) {
 
                                 it.downloadedVideoData.heading?.let { it1 ->
                                     Text(
                                         text = it1,
-                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
+                                        modifier = Modifier.padding(
+                                            horizontal = 5.dp,
+                                            vertical = 5.dp
+                                        ),
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.W800,
                                         maxLines = 1,
@@ -280,12 +278,52 @@ fun  DownloadScreen(navController: NavHostController) {
                                         text = it1,
                                         modifier = Modifier.padding(horizontal = 5.dp),
                                         fontSize = 14.sp,
-                                        fontWeight = FontWeight.W500,
+                                        fontWeight = FontWeight.W300,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
-                                        lineHeight = 20.sp
+                                        lineHeight = 18.sp
                                     )
                                 }
+                            }
+
+                            Column (modifier = Modifier.align(Alignment.CenterVertically).fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly){
+                                    Icon(imageVector = Icons.TwoTone.Delete, contentDescription = null, modifier = Modifier.clickable {
+                                        DownloadUtil.getDownloadTracker(context)
+                                            .removeDownload(it.download.request.uri)
+
+                                        // a toast for confirmation
+                                        Toast.makeText(
+                                            context,
+                                            "${it.downloadedVideoData.heading.toString()} deleted",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                        coroutineScope.launch {
+                                            downloadedVideos.value =
+                                                getAllDownloadedVideos(context = context)
+                                        }
+                                    })
+
+
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(id = R.drawable.baseline_pause_circle_outline_24) ,
+                                        contentDescription = null,
+                                        modifier = Modifier.clickable {
+                                            DownloadUtil.getDownloadTracker(context).pauseDownload(it.download.request.uri)
+                                        }
+                                    )
+
+
+                                    Icon(
+                                        imageVector =  ImageVector.vectorResource(id = R.drawable.baseline_play_circle_outline_24),
+                                        contentDescription = null,
+                                        modifier = Modifier.clickable {
+                                            DownloadUtil.getDownloadTracker(context).resumeDownload(it.download.request.uri)
+
+                                        }
+                                    )
+
+
                             }
 
                         }
@@ -293,76 +331,13 @@ fun  DownloadScreen(navController: NavHostController) {
                 }
             }
 
-        }
-        else{
+        } else {
             Text(text = "No Downloads", modifier = Modifier.padding(padding))
         }
 
 
     }
-    if (isSheetOpen) {
-        ModalBottomSheet(
-            sheetState = sheetState,
-            onDismissRequest = {
-                isSheetOpen = !isSheetOpen
-            },
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(8.dp),
-            windowInsets = WindowInsets(bottom = 40.dp, left = 10.dp, right = 10.dp),
-            containerColor = Color.Black.copy(alpha = 0.75f),
-            scrimColor = Color.Transparent,
-            contentColor = Color.White
-        ) {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
-            ) {
-                items(itemsBS){ item ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                item.onClick()
-                                isSheetOpen = !isSheetOpen
-                            }
-                            .padding(7.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(id = item.icon),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier
-                                .padding(end = 10.dp)
-                                .size(25.dp)
-                        )
-                        Text(
-                            text = item.title,
-                            style = TextStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp
-                            ),
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-
-        }
-    }
-
-
 }
-
-
-data class BottomSheetItem(
-    val title: String,
-    val icon: Int,
-    val onClick: () -> Unit
-)
-
 
 
 

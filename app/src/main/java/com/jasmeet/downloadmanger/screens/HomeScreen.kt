@@ -39,13 +39,21 @@ fun HomeScreen(navController: NavHostController) {
             title = "Mp4 Media Items List",
             onClick = { navController.navigate(Screens.Mp4Screen.route) }
         ) ,
+     /*   TODO: Add this later
+
+     HomeScreenItems(
+            title = "Miscellaneous Media Items List(media Item with CC)",
+            onClick = {
+                navController.navigate(Screens.DownloadManagerScreen.route)
+            }
+        ),*/
         HomeScreenItems(
             title = "View Downloads",
             onClick = {
                 navController.navigate(Screens.DownloadScreen.route)
-
             }
-        )
+        ),
+
     )
 
     Scaffold(
