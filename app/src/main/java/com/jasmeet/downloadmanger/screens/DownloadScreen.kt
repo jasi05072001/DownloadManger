@@ -1,6 +1,5 @@
 package com.jasmeet.downloadmanger.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -173,10 +172,6 @@ fun  DownloadScreen(navController: NavHostController) {
                                                     it.downloadedVideoData.thumbnailUrl,
                                                     "UTF-8"
                                                 )
-                                            val encodedLicence = URLEncoder.encode(
-                                                it.downloadedVideoData.drmLicenceUrl.toString(),
-                                                "UTF-8"
-                                            )
 
                                             navController.navigate(
                                                 Screens.OfflineVideoPlayer.passArguments(
@@ -185,17 +180,9 @@ fun  DownloadScreen(navController: NavHostController) {
                                                     title = it.downloadedVideoData.heading.toString(),
                                                     artworkUrl = encodedArtWorkUrl,
                                                     description = it.downloadedVideoData.description.toString(),
-                                                    drmLicence = encodedLicence
                                                 )
                                             )
-                                            Log.d(
-                                                "DownloadScreen",
-                                                "onClick: $encodedLicence"
-                                            )
                                         },
-                                        onLongClick = {
-                                            isSheetOpen = !isSheetOpen
-                                        }
                                     )
                                 else Modifier
                             )
@@ -236,8 +223,14 @@ fun  DownloadScreen(navController: NavHostController) {
                                                 100f
                                             ),
                                             onClick = {
+                                                isPaused.value = true
                                                 DownloadUtil.getDownloadTracker(context)
                                                     .pauseDownload(it.download.request.uri)
+                                                Toast.makeText(
+                                                    context,
+                                                    "${it.downloadedVideoData.heading.toString()} paused",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
 
                                             }
                                         )
@@ -248,8 +241,6 @@ fun  DownloadScreen(navController: NavHostController) {
                                                 .toString() + "%"
                                         Text(text = percent, color = Color.White)
                                     }
-
-
                                 }
                             }
 
@@ -286,8 +277,17 @@ fun  DownloadScreen(navController: NavHostController) {
                                 }
                             }
 
-                            Column (modifier = Modifier.align(Alignment.CenterVertically).fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly){
-                                    Icon(imageVector = Icons.TwoTone.Delete, contentDescription = null, modifier = Modifier.clickable {
+                            Column (
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .fillMaxHeight(),
+                                verticalArrangement = Arrangement.SpaceEvenly,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ){
+                                Icon(
+                                    imageVector = Icons.TwoTone.Delete,
+                                    contentDescription = null,
+                                    modifier = Modifier.clickable {
                                         DownloadUtil.getDownloadTracker(context)
                                             .removeDownload(it.download.request.uri)
 
@@ -302,27 +302,29 @@ fun  DownloadScreen(navController: NavHostController) {
                                             downloadedVideos.value =
                                                 getAllDownloadedVideos(context = context)
                                         }
-                                    })
-
-
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(id = R.drawable.baseline_pause_circle_outline_24) ,
-                                        contentDescription = null,
-                                        modifier = Modifier.clickable {
-                                            DownloadUtil.getDownloadTracker(context).pauseDownload(it.download.request.uri)
-                                        }
-                                    )
-
-
-                                    Icon(
-                                        imageVector =  ImageVector.vectorResource(id = R.drawable.baseline_play_circle_outline_24),
-                                        contentDescription = null,
-                                        modifier = Modifier.clickable {
-                                            DownloadUtil.getDownloadTracker(context).resumeDownload(it.download.request.uri)
+                                    }
+                                )
+                                if (isPaused.value)
+                                    IconButton(
+                                        onClick = {
+                                            isPaused.value = false
+                                            DownloadUtil.getDownloadTracker(context)
+                                                .resumeDownload(it.download.request.uri)
+                                            Toast.makeText(
+                                                context,
+                                                "${it.downloadedVideoData.heading.toString()} resumed",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
 
                                         }
-                                    )
+                                    ) {
 
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.baseline_pause_circle_outline_24),
+                                            contentDescription = null,
+                                        )
+
+                                    }
 
                             }
 

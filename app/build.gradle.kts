@@ -83,6 +83,9 @@ dependencies {
     implementation(libs.lottie)
 
 
+    testImplementation (libs.mockito.core)
+
+
 
 
 }
