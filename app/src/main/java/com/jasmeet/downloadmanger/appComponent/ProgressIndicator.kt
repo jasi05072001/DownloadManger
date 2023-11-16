@@ -38,8 +38,10 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ProgressIndicator(
+    modifier: Modifier = Modifier,
     progress :Float,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    isAnimating : Boolean = false
 ) {
 
 
@@ -107,14 +109,21 @@ fun ProgressIndicator(
                 modifier = Modifier
                     .size(28.dp)
                     .padding(6.dp)
-                    .graphicsLayer(
-                        translationY = animateFloatAsState(
-                            targetValue = anim * 20f,
-                            animationSpec = tween(
-                                durationMillis = 400,
-                                easing = LinearEasing
-                            ), label = ""
-                        ).value,
+                    .then(
+                        if (isAnimating){
+                            Modifier  .graphicsLayer(
+                                translationY = animateFloatAsState(
+                                    targetValue = anim * 20f,
+                                    animationSpec = tween(
+                                        durationMillis = 400,
+                                        easing = LinearEasing
+                                    ), label = ""
+                                ).value,
+                            )
+                        }else{
+                            Modifier
+                        }
+
                     ),
                 tint = Color.White
             )

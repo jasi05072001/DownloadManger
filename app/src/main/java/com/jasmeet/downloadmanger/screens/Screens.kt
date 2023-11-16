@@ -34,7 +34,7 @@ sealed class Screens(val route :String){
     }
 
     data object OfflineVideoPlayer : Screens(
-        "videoPlayer/{$VIDEO_URL}/{$ARTWORK_URL}/{$MIME_TYPE}/{$TITLE}/{$DESCRIPTION}?{$DRM_LICENCE_URL}"
+        "offlineVideoPlayer/{$VIDEO_URL}/{$ARTWORK_URL}/{$MIME_TYPE}/{$TITLE}/{$DESCRIPTION}?{$DRM_LICENCE_URL}"
     ){
         fun passArguments(
             videoUrl : String,

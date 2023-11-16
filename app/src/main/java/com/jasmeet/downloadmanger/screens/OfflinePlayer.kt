@@ -1,13 +1,11 @@
 package com.jasmeet.downloadmanger.screens
 
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -227,10 +224,12 @@ fun OfflineVideoPlayerScreen(
             }
             Spacer(modifier = Modifier.height(15.dp))
 
-            TextButton(onClick = {
-                isDescriptionVisible.value = !isDescriptionVisible.value
+            TextButton(
+                onClick = {
+                    isDescriptionVisible.value = !isDescriptionVisible.value
 
-            }) {
+                }
+            ) {
                 Text(text = "Description")
             }
 
@@ -244,7 +243,7 @@ fun OfflineVideoPlayerScreen(
             ) {
                 Text(text = description ?: "No Description", modifier = Modifier.padding(all = 5.dp))
 
-        }
+            }
 
         }
     }

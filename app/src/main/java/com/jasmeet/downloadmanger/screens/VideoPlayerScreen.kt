@@ -3,12 +3,17 @@ package com.jasmeet.downloadmanger.screens
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -18,12 +23,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -35,21 +45,27 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.jasmeet.downloadmanger.R
+import com.jasmeet.downloadmanger.appComponent.ProgressIndicator
+import com.jasmeet.downloadmanger.downloadTracker.DownloadTracker
 import com.jasmeet.downloadmanger.utils.DownloadUtil
 import com.jasmeet.downloadmanger.utils.MediaItemTag
+import com.jasmeet.downloadmanger.viewModel.MainViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class,
@@ -66,11 +82,13 @@ fun VideoPlayerScreen(
     artworkUrl: String?,
     drmLicence: String?,
 ) {
-
+    var downloadProgress by rememberSaveable { mutableFloatStateOf(0f) }
     val context = LocalContext.current
     val isArtworkVisible = rememberSaveable {
         mutableStateOf(true)
     }
+
+    val mainViewModel : MainViewModel = viewModel()
 
     val mediaItem =
         if (drmLicence != null) {
@@ -106,6 +124,48 @@ fun VideoPlayerScreen(
                 .setTag(MediaItemTag(-1, title ?: "Video Player"))
                 .build()
         }
+
+
+    val downloadTrackerListener = object: DownloadTracker.Listener{
+        override fun onDownloadsChanged(download: Download) {
+            when(download.state){
+                Download.STATE_DOWNLOADING ->{
+                    mainViewModel.startFlow(context,download.request.uri)
+                }
+                Download.STATE_COMPLETED ->{
+                    downloadProgress = 100f
+                    mainViewModel.stopFlow()
+
+                }
+                Download.STATE_FAILED ->{
+                    downloadProgress = 0f
+                    Toast.makeText(context, "Something Went wrong!", Toast.LENGTH_SHORT).show()
+                    mainViewModel.stopFlow()
+                }
+                Download.STATE_STOPPED ->{
+                    Toast.makeText(context, "Download stopped", Toast.LENGTH_SHORT).show()
+                    mainViewModel.stopFlow()
+                }
+                Download.STATE_REMOVING ->{
+                    mainViewModel.stopFlow()
+                    downloadProgress = 0f
+
+                }
+                else ->{
+                    mainViewModel.stopFlow()
+                }
+            }
+
+        }
+    }
+    DownloadUtil.getDownloadTracker(context).addListener(downloadTrackerListener)
+
+
+    mainViewModel.downloadPercent.observeAsState().value.let {
+        if (it != null) {
+            downloadProgress = it / 100f
+        }
+    }
 
 
     val exoPlayer = remember{
@@ -219,55 +279,122 @@ fun VideoPlayerScreen(
                 }
 
             }
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Button(onClick = {
-                try {
-                    if (DownloadUtil
-                            .getDownloadTracker(context)
-                            .isDownloaded(mediaItem)
-                    ) {
-                        Toast
-                            .makeText(
-                                context,
-                                "Already Downloaded",
-                                Toast.LENGTH_SHORT
-                            )
-                            .show()
-                    } else {
-                        val item = mediaItem
-                            .buildUpon()
-                            .setTag(
-                                (mediaItem.localConfiguration?.tag as MediaItemTag).copy(
-                                    duration = exoPlayer.duration
-                                )
-                            )
-                            .build()
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
 
-                        if (!DownloadUtil
-                                .getDownloadTracker(context)
-                                .hasDownload(item.localConfiguration?.uri)
-                        ) {
-                            DownloadUtil
-                                .getDownloadTracker(context)
-                                .toggleDownloadDialogHelper(
+            ) {
+                TextButton(
+                    onClick = {
+                        try {
+                            if (DownloadUtil
+                                    .getDownloadTracker(context)
+                                    .isDownloaded(mediaItem)
+                            ) {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "Already Downloaded",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+                            } else {
+                                val item = mediaItem
+                                    .buildUpon()
+                                    .setTag(
+                                        (mediaItem.localConfiguration?.tag as MediaItemTag).copy(
+                                            duration = exoPlayer.duration
+                                        )
+                                    )
+                                    .build()
+
+                                if (!DownloadUtil
+                                        .getDownloadTracker(context)
+                                        .hasDownload(item.localConfiguration?.uri)
+                                ) {
+                                    DownloadUtil
+                                        .getDownloadTracker(context)
+                                        .toggleDownloadDialogHelper(
+                                            context,
+                                            item,
+                                            videoId = "null"
+                                        )
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Toast
+                                .makeText(
                                     context,
-                                    item,
-                                    videoId = "null"
+                                    e.message.toString(),
+                                    Toast.LENGTH_SHORT
                                 )
+                                .show()
+                            Log.d("error", e.message.toString())
                         }
-                    }
-                } catch (e: Exception) {
-                    Toast
-                        .makeText(
-                            context,
-                            e.message.toString(),
-                            Toast.LENGTH_SHORT
-                        )
-                        .show()
-                    Log.d("error", e.message.toString())
+                    }) {
+                    Text(text = "Download")
+
                 }
-            }) {
-                Text(text = "Download")
+                Spacer(modifier = Modifier.weight(1f))
+                Column {
+                    ProgressIndicator(
+                        isAnimating = downloadProgress > 0f && downloadProgress < 1f,
+                        progress = downloadProgress,
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    val percent = if (downloadProgress < 1f) {
+                        "${(downloadProgress * 100).toInt()}%"
+                    } else {
+                        "100%"
+                    }
+
+                    if (downloadProgress>0f)
+                    Text(
+                        text = percent,
+                        fontSize = 14.sp
+                    )
+                }
+                Spacer(modifier =Modifier.width(10.dp))
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+
+                ) {
+                TextButton(
+                    onClick = {
+                        DownloadUtil.getDownloadTracker(context).pauseDownload(Uri.parse(videoUrl))
+                    }
+                ) {
+                    Text(text = "Pause Download")
+
+                }
+                TextButton(
+                    onClick = {
+                        DownloadUtil.getDownloadTracker(context).resumeDownload(Uri.parse(videoUrl))
+                    }
+                ) {
+                    Text(text = "Resume Download")
+
+                }
+            }
+            TextButton(
+                onClick = {
+                    DownloadUtil.getDownloadTracker(context).removeDownload(Uri.parse(videoUrl))
+                    downloadProgress = 0f
+                }
+            ) {
+                Text(text = "Delete Download")
 
             }
         }
@@ -279,6 +406,7 @@ fun VideoPlayerScreen(
         effect = {
             onDispose {
                 exoPlayer.release()
+                DownloadUtil.getDownloadTracker(context).removeListener(downloadTrackerListener)
             }
         }
     )
