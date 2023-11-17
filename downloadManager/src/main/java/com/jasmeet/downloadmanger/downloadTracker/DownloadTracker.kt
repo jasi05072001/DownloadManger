@@ -159,7 +159,7 @@ class DownloadTracker(
                 applicationContext,
                 MyDownloadService::class.java,
                 download.request.id,
-                false
+                true
             )
         }
         val coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -170,23 +170,27 @@ class DownloadTracker(
     }
 
     @ExperimentalStdlibApi
-    fun pauseDownload(uri: Uri?) {
+    fun pauseDownload(uri: Uri?,context: Context) {
         val download = downloads[uri]
         download?.let {
-            DownloadService.sendPauseDownloads(
-                applicationContext,
+            DownloadService.sendSetStopReason(
+                context,
                 MyDownloadService::class.java,
+                download.request.id,
+                Download.STATE_STOPPED,
                 false
             )
         }
     }
     @ExperimentalStdlibApi
-    fun resumeDownload(uri: Uri?) {
+    fun resumeDownload(uri: Uri?,context: Context) {
         val download = downloads[uri]
         download?.let {
-            DownloadService.sendResumeDownloads(
-                applicationContext,
+            DownloadService.sendSetStopReason(
+                context,
                 MyDownloadService::class.java,
+                download.request.id,
+                Download.STOP_REASON_NONE,
                 true
             )
         }

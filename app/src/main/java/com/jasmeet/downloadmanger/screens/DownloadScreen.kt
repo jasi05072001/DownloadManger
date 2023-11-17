@@ -2,7 +2,6 @@ package com.jasmeet.downloadmanger.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,26 +28,22 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,7 +52,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.jasmeet.downloadmanger.R
 import com.jasmeet.downloadmanger.appComponent.ProgressIndicator
 import com.jasmeet.downloadmanger.data.CombinedDownloadData
 import com.jasmeet.downloadmanger.repository.DownloadedVideoRepository.getAllDownloadedVideos
@@ -82,12 +76,12 @@ fun  DownloadScreen(navController: NavHostController) {
     val downloadProgress = rememberSaveable { mutableFloatStateOf(0f) }
     val context = LocalContext.current
 
+    val downloadUtil = remember {
+        DownloadUtil.getDownloadTracker(context = context)
+    }
+
     val isPaused = rememberSaveable { mutableStateOf(false) }
 
-    val sheetState = rememberModalBottomSheetState()
-    var isSheetOpen by rememberSaveable {
-        mutableStateOf(false)
-    }
     val coroutineScope = rememberCoroutineScope()
 
 
@@ -225,7 +219,7 @@ fun  DownloadScreen(navController: NavHostController) {
                                             onClick = {
                                                 isPaused.value = true
                                                 DownloadUtil.getDownloadTracker(context)
-                                                    .pauseDownload(it.download.request.uri)
+                                                    .pauseDownload(it.download.request.uri,context)
                                                 Toast.makeText(
                                                     context,
                                                     "${it.downloadedVideoData.heading.toString()} paused",
@@ -277,55 +271,27 @@ fun  DownloadScreen(navController: NavHostController) {
                                 }
                             }
 
-                            Column (
-                                modifier = Modifier
-                                    .align(Alignment.CenterVertically)
-                                    .fillMaxHeight(),
-                                verticalArrangement = Arrangement.SpaceEvenly,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ){
+                            IconButton(
+                                onClick = {
+
+                                    downloadUtil.removeDownload(it.download.request.uri)
+                                    Toast.makeText(context,
+                                        "${it.downloadedVideoData.heading.toString()} deleted",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                    coroutineScope.launch {
+                                        downloadedVideos.value =
+                                            getAllDownloadedVideos(context = context)
+                                    }
+
+                                }
+                            ) {
                                 Icon(
                                     imageVector = Icons.TwoTone.Delete,
                                     contentDescription = null,
-                                    modifier = Modifier.clickable {
-                                        DownloadUtil.getDownloadTracker(context)
-                                            .removeDownload(it.download.request.uri)
 
-                                        // a toast for confirmation
-                                        Toast.makeText(
-                                            context,
-                                            "${it.downloadedVideoData.heading.toString()} deleted",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-
-                                        coroutineScope.launch {
-                                            downloadedVideos.value =
-                                                getAllDownloadedVideos(context = context)
-                                        }
-                                    }
-                                )
-                                if (isPaused.value)
-                                    IconButton(
-                                        onClick = {
-                                            isPaused.value = false
-                                            DownloadUtil.getDownloadTracker(context)
-                                                .resumeDownload(it.download.request.uri)
-                                            Toast.makeText(
-                                                context,
-                                                "${it.downloadedVideoData.heading.toString()} resumed",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                        }
-                                    ) {
-
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.baseline_pause_circle_outline_24),
-                                            contentDescription = null,
-                                        )
-
-                                    }
-
+                                    )
                             }
 
                         }
@@ -334,7 +300,7 @@ fun  DownloadScreen(navController: NavHostController) {
             }
 
         } else {
-            Text(text = "No Downloads", modifier = Modifier.padding(padding))
+            Text(text = "No Downloads", modifier = Modifier.padding(top = padding.calculateTopPadding(), start = 25.dp))
         }
 
 
