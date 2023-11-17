@@ -63,7 +63,8 @@ class DownloadTracker(
     context: Context,
     private val httpDataSourceFactory: HttpDataSource.Factory,
     private val downloadManager: DownloadManager
-) {
+)
+{
 
     private val database = DbProvider.getDatabase(context)
     private val dao = database.getDownloadVideoDao()

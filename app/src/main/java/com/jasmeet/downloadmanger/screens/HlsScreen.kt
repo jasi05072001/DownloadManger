@@ -48,11 +48,12 @@ import java.net.URLEncoder
     ExperimentalCoroutinesApi::class
 )
 @Composable
-fun HlsScreen(navController: NavHostController) {
+fun HlsScreen( modifier: Modifier=Modifier,navController: NavHostController) {
 
     val context = LocalContext.current
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {

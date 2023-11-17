@@ -84,8 +84,8 @@ dependencies {
 
 
     testImplementation (libs.mockito.core)
-
-
+    androidTestImplementation (libs.androidx.core.testing)
+    androidTestImplementation (libs.androidx.navigation.testing)
 
 
 }

@@ -67,6 +67,7 @@ import java.net.URLDecoder
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun OfflineVideoPlayerScreen(
+    modifier: Modifier=Modifier,
     navController: NavHostController,
     videoUrl: String?,
     mimeType: String?,
@@ -146,6 +147,7 @@ fun OfflineVideoPlayerScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {

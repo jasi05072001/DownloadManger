@@ -73,6 +73,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun VideoPlayerScreen(
+    modifier: Modifier=Modifier,
     navController: NavHostController,
     videoUrl: String?,
     mimeType: String?,
@@ -208,6 +209,7 @@ fun VideoPlayerScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {

@@ -48,12 +48,13 @@ import java.net.URLEncoder
     ExperimentalCoroutinesApi::class
 )
 @Composable
-fun Mp4Screen(navController: NavHostController) {
+fun Mp4Screen( modifier: Modifier=Modifier,navController: NavHostController) {
 
 
     val context = LocalContext.current
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {

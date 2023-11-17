@@ -67,7 +67,10 @@ import java.net.URLEncoder
 )
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
-fun  DownloadScreen(navController: NavHostController) {
+fun  DownloadScreen(
+    modifier: Modifier=Modifier,
+    navController: NavHostController
+) {
 
     val offlineViewModel: OfflineVideoViewModel = viewModel()
     val downloads = offlineViewModel.downloads.observeAsState(emptyList()).value
@@ -116,6 +119,7 @@ fun  DownloadScreen(navController: NavHostController) {
 
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {

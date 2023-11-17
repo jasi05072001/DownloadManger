@@ -1,7 +1,6 @@
 package com.jasmeet.downloadmanger
 
 import android.Manifest
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -20,7 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
 
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -67,7 +68,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainApp()
+                    val navController = rememberNavController()
+                    MainApp(navController = navController)
                 }
             }
         }
@@ -76,16 +78,18 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun MainApp() {
-    val navController = rememberNavController()
-    val context = LocalContext.current
+fun MainApp(navController: NavHostController) {
+
 
     NavHost(
         navController = navController,
         startDestination = Screens.HomeScreen.route
     ){
         composable(route = Screens.HomeScreen.route){
-            HomeScreen(navController = navController)
+            HomeScreen(
+                navController = navController,
+
+            )
         }
         composable(
             route =Screens.DownloadScreen.route,
@@ -96,7 +100,10 @@ fun MainApp() {
                 fadeOut()+ slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             }
         ){
-            DownloadScreen(navController = navController)
+            DownloadScreen(
+                navController = navController,
+                modifier = Modifier.testTag("DownloadScreen")
+            )
         }
 
         composable(
@@ -108,7 +115,10 @@ fun MainApp() {
                 fadeOut()+ slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             }
         ){
-            DrmScreen(navController = navController)
+            DrmScreen(
+                navController = navController,
+                modifier = Modifier.testTag("DrmScreen")
+            )
         }
         composable(
             route =Screens.HlsScreen.route,
@@ -119,10 +129,13 @@ fun MainApp() {
                 fadeOut() + slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             }
         ){
-            HlsScreen(navController = navController)
+            HlsScreen(
+                navController = navController,
+                modifier = Modifier.testTag("HlsScreen")
+            )
         }
         composable(
-           route = Screens.Mp4Screen.route,
+            route = Screens.Mp4Screen.route,
             enterTransition = {
                 fadeIn() + slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             },
@@ -130,7 +143,10 @@ fun MainApp() {
                 fadeOut() + slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             },
         ){
-            Mp4Screen(navController = navController)
+            Mp4Screen(
+                navController = navController,
+                modifier = Modifier.testTag("Mp4Screen")
+            )
         }
         composable(
             route = Screens.VideoPlayer.route,
@@ -170,7 +186,7 @@ fun MainApp() {
                 fadeIn() + slideInVertically(initialOffsetY = { -1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             },
             exitTransition = {
-               fadeOut()+ slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
+                fadeOut()+ slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700, easing = FastOutLinearInEasing))
             }
         ){
             VideoPlayerScreen(
@@ -180,7 +196,8 @@ fun MainApp() {
                 title = it.arguments?.getString(TITLE),
                 description = it.arguments?.getString(DESCRIPTION),
                 artworkUrl = it.arguments?.getString(ARTWORK_URL),
-                drmLicence = it.arguments?.getString(DRM_LICENCE_URL)
+                drmLicence = it.arguments?.getString(DRM_LICENCE_URL),
+                modifier = Modifier.testTag("VideoPlayerScreen")
             )
         }
 
@@ -232,7 +249,8 @@ fun MainApp() {
                 title = it.arguments?.getString(TITLE),
                 description = it.arguments?.getString(DESCRIPTION),
                 artworkUrl = it.arguments?.getString(ARTWORK_URL),
-                drmLicence = it.arguments?.getString(DRM_LICENCE_URL)
+                drmLicence = it.arguments?.getString(DRM_LICENCE_URL),
+                modifier = Modifier.testTag("OfflineVideoPlayerScreen")
             )
         }
     }

@@ -13,8 +13,7 @@
         <service
             android:name=".service.MyDownloadService"
             android:foregroundServiceType="dataSync"
-            android:exported="true"
-            android:permission="@string/app_name">
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.exoplayer.downloadService.action.RESTART" />
 
