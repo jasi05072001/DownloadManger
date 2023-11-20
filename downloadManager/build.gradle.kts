@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.com.android.library)
     alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.ksp)
+    id("maven-publish")
+
 }
 
 android {
@@ -57,4 +59,19 @@ dependencies {
 
     testImplementation (libs.mockito.core)
     androidTestImplementation (libs.androidx.core.testing)
+}
+
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "com.github.jasi341"
+            artifactId = "media3-downloadManager"
+            version = "1.0"
+
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
+    }
 }
