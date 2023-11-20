@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.jasmeet.downloadmanger.utils.DownloadUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -21,6 +22,7 @@ class MainViewModel:ViewModel() {
     private var coroutineScope: CoroutineScope? = null
 
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun startFlow(context: Context, uri: Uri){
         coroutineScope?.cancel()
         val job = SupervisorJob()
