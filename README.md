@@ -12,10 +12,10 @@ maven { url = uri("https://jitpack.io") }
 
 add the following to your project's `build.gradle.kts` file,
 
-'groovy:'
+`groovy:`
 implementation 'com.github.jasi05072001:DownloadManger:1.X.X'
 
-'kotlin:'
+`kotlin:`
 implementation("com.github.jasi05072001:DownloadManger:1.X.X")
 
 # How to use this library
