@@ -113,7 +113,7 @@ If you want to download the mediaItem with a specific quality then you can pass 
 ```
 
 `Step 5:`
-The  `Download Manager` will also take care if there is any network error or the download is paused or the download is cancelled. and it will only starts downloading the media Item when there is enough storage space available.
+The  `Download Manager` will also take care if there is `any network error` or the `download is paused` or the `download is cancelled`. and it will only `starts downloading the media Item` when there is `enough storage space available.`
 
 
 
