@@ -60,7 +60,7 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
-    implementation(project(mapOf("path" to ":downloadManager")))
+//    implementation(project(mapOf("path" to ":downloadManager")))
     implementation(libs.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
@@ -86,6 +86,7 @@ dependencies {
     testImplementation (libs.mockito.core)
     androidTestImplementation (libs.androidx.core.testing)
     androidTestImplementation (libs.androidx.navigation.testing)
+    implementation ( "com.github.jasi05072001:DownloadManger:1.0")
 
 
 }
