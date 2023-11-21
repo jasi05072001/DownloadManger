@@ -10,8 +10,13 @@ import com.jasmeet.downloadmanger.utils.MediaItemTag
 object DrmMediaItem {
 
     val firstMediaItem = MediaItem.Builder()
-        .setUri("https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears.mpd")
+        .setUri("https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears.mpd")
         .setMimeType(MimeTypes.APPLICATION_MPD)
+        .setDrmConfiguration(
+            MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                .setLicenseUri("https://proxy.uat.widevine.com/proxy?video_id=2015_tears&provider=widevine_test")
+                .build()
+        )
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle("Clear(WebM, VP9)")
@@ -25,8 +30,13 @@ object DrmMediaItem {
         .build()
 
     val secondMediaItem =   MediaItem.Builder()
-        .setUri("https://storage.googleapis.com/exoplayer-test-media-0/dash-multiple-base-urls/manifest.mpd")
+        .setUri("https://storage.googleapis.com/exoplayer-test-media-1/widevine/tears_enc_clear_enc.mpd")
         .setMimeType(MimeTypes.APPLICATION_MPD)
+        .setDrmConfiguration(
+            MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                .setLicenseUri("https://proxy.uat.widevine.com/proxy?video_id=2015_tears&provider=widevine_test")
+                .build()
+        )
         .setMediaMetadata(
             MediaMetadata.Builder()
             .setTitle("Licensed-H264(cenc)")

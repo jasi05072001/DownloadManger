@@ -21,6 +21,8 @@ import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.drm.DrmSessionEventListener
+import androidx.media3.exoplayer.drm.OfflineLicenseHelper
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadHelper
 import androidx.media3.exoplayer.offline.DownloadIndex
@@ -306,7 +308,7 @@ class DownloadTracker(
     Can't use applicationContext because it'll result in a crash, instead
     Use context of the activity calling for the AlertDialog
      */
-    private inner class StartDownloadHlsDialogHelper(
+    inner class StartDownloadHlsDialogHelper(
         private val context: Context,
         private val downloadHelper: DownloadHelper,
         private val mediaItem: MediaItem,
@@ -351,6 +353,7 @@ class DownloadTracker(
 
             val dialogBuilder: AlertDialog.Builder = AlertDialog.Builder(context)
             val formatDownloadable: MutableList<Format> = mutableListOf()
+            var formatSelected: Format
             var qualitySelected: DefaultTrackSelector.Parameters
             val mappedTrackInfo = downloadHelper.getMappedTrackInfo(0)
 
@@ -384,67 +387,114 @@ class DownloadTracker(
             val qualityList = formatDownloadable.map { it.height }
 
             //Default quality download
+            formatSelected = formatDownloadable[0]
             qualitySelected = DefaultTrackSelector(context).buildUponParameters()
-                .setMinVideoSize(formatDownloadable[0].width, formatDownloadable[0].height)
-                .setMinVideoBitrate(formatDownloadable[0].bitrate)
-                .setMaxVideoSize(formatDownloadable[0].width, formatDownloadable[0].height)
-                .setMaxVideoBitrate(formatDownloadable[0].bitrate)
+                .setMinVideoSize(formatSelected.width, formatSelected.height)
+                .setMinVideoBitrate(formatSelected.bitrate)
+                .setMaxVideoSize(formatSelected.width, formatSelected.height)
+                .setMaxVideoBitrate(formatSelected.bitrate)
                 .build()
 
             dialogBuilder.setTitle("Select Download Quality")
                 .setSingleChoiceItems(optionsDownload.toTypedArray(), 0) { _, which ->
                     val format = formatDownloadable[which]
+                    formatSelected = format
                     qualitySelected = DefaultTrackSelector(context).buildUponParameters()
-                        .setMinVideoSize(format.width, format.height)
-                        .setMinVideoBitrate(format.bitrate)
-                        .setMaxVideoSize(format.width, format.height)
-                        .setMaxVideoBitrate(format.bitrate)
+                        .setMinVideoSize(formatSelected.width, formatSelected.height)
+                        .setMinVideoBitrate(formatSelected.bitrate)
+                        .setMaxVideoSize(formatSelected.width, formatSelected.height)
+                        .setMaxVideoBitrate(formatSelected.bitrate)
                         .build()
-                    Log.e(TAG, "format Selected= width: ${format.width}, height: ${format.height}, qualitySelected:${qualitySelected}")
+                    Log.e(TAG, "format Selected= width: ${formatSelected.width}, height: ${formatSelected.height}, qualitySelected:${qualitySelected}")
 
 
                     /**
                      * This function will save the quality selected by the user
                      * in the shared preferences
                      */
-                    DownloadUtil.saveQualitySelected(context, format.height)
+                    DownloadUtil.saveQualitySelected(context, formatSelected.height)
                 }.setPositiveButton("Download") { _, _ ->
-                    val height = DownloadUtil.getQualitySelected(context)
 
-                    //here we will save the media item title, artwork uri and videoId to room db
+                    if(mediaItem.localConfiguration!!.mimeType == MimeTypes.APPLICATION_MPD){
 
-                    val entity = DownloadedVideoData(
-                        heading = mediaItem.mediaMetadata.title.toString(),
-                        thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
-                        url = mediaItem.localConfiguration?.uri.toString(),
-                        description = mediaItem.mediaMetadata.description.toString(),
-                        drmLicenceUrl = mediaItem.localConfiguration?.drmConfiguration?.licenseUri.toString()
+                        val entity = DownloadedVideoData(
+                            heading = mediaItem.mediaMetadata.title.toString(),
+                            thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+                            url = mediaItem.localConfiguration?.uri.toString(),
+                            description = mediaItem.mediaMetadata.description.toString(),
+                        )
 
+                        coroutineScope.launch {
+                            dao.insert(entity)
+                        }
+
+                        helper.clearTrackSelections(0)
+                        helper.addTrackSelection(0,qualitySelected)
+
+                        val drmConfiguration = mediaItem.localConfiguration?.drmConfiguration
+
+                        val offlineHelper = OfflineLicenseHelper.newWidevineInstance(
+                            drmConfiguration?.licenseUri.toString(),
+                            drmConfiguration?.forceDefaultLicenseUri ?:false,
+                            DownloadUtil.getHttpDataSourceFactory(context),
+                            drmConfiguration?.licenseRequestHeaders,
+                            DrmSessionEventListener.EventDispatcher()
+                        )
+                        val keySetId = offlineHelper.downloadLicense(formatSelected)
+                        Log.e("Licence", "keySetId: $keySetId")
+
+                        val estimatedContentLength: Long =
+                            (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
+                                .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
+                        if(availableBytesLeft > estimatedContentLength) {
+                            val downloadRequest: DownloadRequest = downloadHelper.getDownloadRequest(
+                                (mediaItem.localConfiguration?.tag as MediaItemTag).title,
+                                Util.getUtf8Bytes(estimatedContentLength.toString())
+                            ).copyWithKeySetId(keySetId)
+                            startDownload(downloadRequest)
+                            availableBytesLeft -= estimatedContentLength
+                            Log.e(TAG, "availableBytesLeft after calculation: $availableBytesLeft")
+                        } else {
+                            throw NotEnoughSpaceException("Not enough space to download this file")
+                        }
+                    }
+
+                    //this is the case when mimeType is other than DRM/MPD
+                    else{
+                        val entity = DownloadedVideoData(
+                            heading = mediaItem.mediaMetadata.title.toString(),
+                            thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+                            url = mediaItem.localConfiguration?.uri.toString(),
+                            description = mediaItem.mediaMetadata.description.toString(),
                         )
 
 
-                    coroutineScope.launch {
-                        dao.insert(entity)
+                        coroutineScope.launch {
+                            dao.insert(entity)
+                        }
+
+                        helper.clearTrackSelections(0)
+                        helper.addTrackSelection(0, qualitySelected)
+                        val estimatedContentLength: Long =
+                            (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
+                                .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
+                        if(availableBytesLeft > estimatedContentLength) {
+                            val downloadRequest: DownloadRequest = downloadHelper.getDownloadRequest(
+                                (mediaItem.localConfiguration?.tag as MediaItemTag).title,
+                                Util.getUtf8Bytes(estimatedContentLength.toString())
+                            )
+                            startDownload(downloadRequest)
+                            availableBytesLeft -= estimatedContentLength
+                            Log.e(TAG, "availableBytesLeft after calculation: $availableBytesLeft")
+                        } else {
+                            throw NotEnoughSpaceException("Not enough space to download this file")
+                        }
+                        positiveCallback?.invoke()
                     }
 
-                    helper.clearTrackSelections(0)
-                    helper.addTrackSelection(0, qualitySelected)
-                    val estimatedContentLength: Long =
-                        (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
-                            .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
-                    if(availableBytesLeft > estimatedContentLength) {
-                        val downloadRequest: DownloadRequest = downloadHelper.getDownloadRequest(
-                            (mediaItem.localConfiguration?.tag as MediaItemTag).title,
-                            Util.getUtf8Bytes(estimatedContentLength.toString())
-                        )
-                        startDownload(downloadRequest)
-                        availableBytesLeft -= estimatedContentLength
-                        Log.e(TAG, "availableBytesLeft after calculation: $availableBytesLeft")
-                    } else {
-                        throw NotEnoughSpaceException("Not enough space to download this file")
-                    }
-                    positiveCallback?.invoke()
-                }.setOnDismissListener {
+
+                }
+                .setOnDismissListener {
                     trackSelectionDialog = null
                     downloadHelper.release()
                     dismissCallback?.invoke()
@@ -458,45 +508,99 @@ class DownloadTracker(
                  */
 
                 if(DownloadUtil.getQualitySelected(context)>0){
-                    dismiss()
-                    val entity = DownloadedVideoData(
-                        heading = mediaItem.mediaMetadata.title.toString(),
-                        thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
-                        url =  mediaItem.localConfiguration?.uri.toString(),
-                        description = mediaItem.mediaMetadata.description.toString(),
-                        drmLicenceUrl = mediaItem.localConfiguration?.drmConfiguration?.licenseUri.toString()
 
-                        )
+                    if (mediaItem.localConfiguration!!.mimeType == MimeTypes.APPLICATION_MPD) {
+                        val savedQuality = DownloadUtil.getQualitySelected(context)
+
+                        val selectedFormat = findSelectedFormat(formatDownloadable, savedQuality)
+                        if (selectedFormat != null) {
+
+                            val drmConfiguration = mediaItem.localConfiguration?.drmConfiguration
+
+                            val offlineHelper = OfflineLicenseHelper.newWidevineInstance(
+                                drmConfiguration?.licenseUri.toString(),
+                                drmConfiguration?.forceDefaultLicenseUri ?: false,
+                                DownloadUtil.getHttpDataSourceFactory(context),
+                                drmConfiguration?.licenseRequestHeaders,
+                                DrmSessionEventListener.EventDispatcher()
+                            )
+
+                            val keySetId = offlineHelper.downloadLicense(selectedFormat)
+                            Log.d("LicenceShared", "keySetId: $keySetId")
 
 
-                    coroutineScope.launch {
-                        dao.insert(entity)
+                            val estimatedContentLength: Long =
+                                (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
+                                    .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
+
+
+                            if (availableBytesLeft > estimatedContentLength) {
+                                val downloadRequest: DownloadRequest =
+                                    downloadHelper.getDownloadRequest(
+                                        (mediaItem.localConfiguration?.tag as MediaItemTag).title,
+                                        Util.getUtf8Bytes(estimatedContentLength.toString())
+                                    ).copyWithKeySetId(keySetId)
+
+                                startDownload(downloadRequest)
+                                availableBytesLeft -= estimatedContentLength
+
+                                val entity = DownloadedVideoData(
+                                    heading = mediaItem.mediaMetadata.title.toString(),
+                                    thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+                                    url = mediaItem.localConfiguration?.uri.toString(),
+                                    description = mediaItem.mediaMetadata.description.toString(),
+                                )
+
+                                coroutineScope.launch {
+                                    dao.insert(entity)
+                                }
+
+                            } else {
+                                throw NotEnoughSpaceException("Not enough space to download this file")
+                            }
+                        }
+                        dismiss()
+
+
                     }
 
-                    val savedQuality = DownloadUtil.getQualitySelected(context)
-                    val selectedFormat = findSelectedFormat(formatDownloadable, savedQuality)
-                    if (selectedFormat != null) {
-                        qualitySelected = DefaultTrackSelector(context).buildUponParameters()
-                            .setMinVideoSize(selectedFormat.width, selectedFormat.height)
-                            .setMinVideoBitrate(selectedFormat.bitrate)
-                            .setMaxVideoSize(selectedFormat.width, selectedFormat.height)
-                            .setMaxVideoBitrate(selectedFormat.bitrate)
-                            .build()
+                    else {
+                        val savedQuality = DownloadUtil.getQualitySelected(context)
+                        val selectedFormat = findSelectedFormat(formatDownloadable, savedQuality)
+                        if (selectedFormat != null) {
+                            qualitySelected = DefaultTrackSelector(context).buildUponParameters()
+                                .setMinVideoSize(selectedFormat.width, selectedFormat.height)
+                                .setMinVideoBitrate(selectedFormat.bitrate)
+                                .setMaxVideoSize(selectedFormat.width, selectedFormat.height)
+                                .setMaxVideoBitrate(selectedFormat.bitrate)
+                                .build()
 
 
-                        val estimatedContentLength: Long =
-                            (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
-                                .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
+                            val estimatedContentLength: Long =
+                                (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
+                                    .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
 
-                        if (availableBytesLeft >estimatedContentLength){
-                            val downloadRequest = downloadHelper.getDownloadRequest(
-                                (mediaItem.localConfiguration?.tag as MediaItemTag).title,
-                                Util.getUtf8Bytes(estimatedContentLength.toString())
-                            )
-                            startDownload(downloadRequest)
-                            availableBytesLeft -= estimatedContentLength
-                        }else{
-                            throw NotEnoughSpaceException("Not enough space to download this file")
+                            if (availableBytesLeft > estimatedContentLength) {
+                                val downloadRequest = downloadHelper.getDownloadRequest(
+                                    (mediaItem.localConfiguration?.tag as MediaItemTag).title,
+                                    Util.getUtf8Bytes(estimatedContentLength.toString())
+                                )
+                                startDownload(downloadRequest)
+                                availableBytesLeft -= estimatedContentLength
+
+                                val entity = DownloadedVideoData(
+                                    heading = mediaItem.mediaMetadata.title.toString(),
+                                    thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+                                    url = mediaItem.localConfiguration?.uri.toString(),
+                                    description = mediaItem.mediaMetadata.description.toString(),
+                                )
+
+                                coroutineScope.launch {
+                                    dao.insert(entity)
+                                }
+                            } else {
+                                throw NotEnoughSpaceException("Not enough space to download this file")
+                            }
                         }
                     }
 
@@ -508,46 +612,105 @@ class DownloadTracker(
                  */
 
                 else if (userQuality != null) {
-                    val entity = DownloadedVideoData(
-                        heading = mediaItem.mediaMetadata.title.toString(),
-                        thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
-                        url =  mediaItem.localConfiguration?.uri.toString(),
-                        description = mediaItem.mediaMetadata.description.toString(),
-                        drmLicenceUrl = mediaItem.localConfiguration?.drmConfiguration?.licenseUri.toString()
 
-                    )
+                    if (mediaItem.localConfiguration!!.mimeType == MimeTypes.APPLICATION_MPD) {
+                        val closestUserQuality = returnClosestElement(qualityList, userQuality!!)
+                        val userSelectedFormat =
+                            findSelectedFormat(formatDownloadable, closestUserQuality)
 
+                        if (userSelectedFormat != null) {
+                            val drmConfiguration = mediaItem.localConfiguration?.drmConfiguration
 
-                    coroutineScope.launch {
-                        dao.insert(entity)
-                    }
-
-                    dismiss()
-                    val closestUserQuality = returnClosestElement(qualityList, userQuality!!)
-                    val userSelectedFormat = findSelectedFormat(formatDownloadable, closestUserQuality)
-
-                    if (userSelectedFormat != null){
-                        qualitySelected = DefaultTrackSelector(context).buildUponParameters()
-                            .setMinVideoSize(userSelectedFormat.width, userSelectedFormat.height)
-                            .setMinVideoBitrate(userSelectedFormat.bitrate)
-                            .setMaxVideoSize(userSelectedFormat.width, userSelectedFormat.height)
-                            .setMaxVideoBitrate(userSelectedFormat.bitrate)
-                            .build()
-
-
-                        val estimatedContentLength: Long =
-                            (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
-                                .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
-
-                        if (availableBytesLeft >estimatedContentLength){
-                            val downloadRequest = downloadHelper.getDownloadRequest(
-                                (mediaItem.localConfiguration?.tag as MediaItemTag).title,
-                                Util.getUtf8Bytes(estimatedContentLength.toString())
+                            val offlineHelper = OfflineLicenseHelper.newWidevineInstance(
+                                drmConfiguration?.licenseUri.toString(),
+                                drmConfiguration?.forceDefaultLicenseUri ?: false,
+                                DownloadUtil.getHttpDataSourceFactory(context),
+                                drmConfiguration?.licenseRequestHeaders,
+                                DrmSessionEventListener.EventDispatcher()
                             )
-                            startDownload(downloadRequest)
-                            availableBytesLeft -= estimatedContentLength
-                        }else{
-                            throw NotEnoughSpaceException("Not enough space to download this file")
+
+                            val keySetId = offlineHelper.downloadLicense(userSelectedFormat)
+
+                            Log.d("UserSelected", "keySetId: $keySetId")
+
+                            val estimatedContentLength: Long =
+                                (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
+                                    .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
+
+                            if (availableBytesLeft > estimatedContentLength) {
+                                val downloadRequest: DownloadRequest =
+                                    downloadHelper.getDownloadRequest(
+                                        (mediaItem.localConfiguration?.tag as MediaItemTag).title,
+                                        Util.getUtf8Bytes(estimatedContentLength.toString())
+                                    ).copyWithKeySetId(keySetId)
+
+                                startDownload(downloadRequest)
+                                availableBytesLeft -= estimatedContentLength
+
+                                val entity = DownloadedVideoData(
+                                    heading = mediaItem.mediaMetadata.title.toString(),
+                                    thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+                                    url = mediaItem.localConfiguration?.uri.toString(),
+                                    description = mediaItem.mediaMetadata.description.toString(),
+                                )
+
+                                coroutineScope.launch {
+                                    dao.insert(entity)
+                                }
+
+                            } else {
+                                throw NotEnoughSpaceException("Not enough space to download this file")
+                            }
+
+
+                        }
+                        dismiss()
+
+                    } else {
+
+                        dismiss()
+                        val closestUserQuality = returnClosestElement(qualityList, userQuality!!)
+                        val userSelectedFormat =
+                            findSelectedFormat(formatDownloadable, closestUserQuality)
+
+                        if (userSelectedFormat != null) {
+                            qualitySelected = DefaultTrackSelector(context).buildUponParameters()
+                                .setMinVideoSize(userSelectedFormat.width, userSelectedFormat.height)
+                                .setMinVideoBitrate(userSelectedFormat.bitrate)
+                                .setMaxVideoSize(userSelectedFormat.width, userSelectedFormat.height)
+                                .setMaxVideoBitrate(userSelectedFormat.bitrate)
+                                .build()
+
+
+                            val estimatedContentLength: Long =
+                                (qualitySelected.maxVideoBitrate * mediaItemTag.duration)
+                                    .div(C.MILLIS_PER_SECOND).div(C.BITS_PER_BYTE)
+
+                            if (availableBytesLeft > estimatedContentLength) {
+                                val downloadRequest = downloadHelper.getDownloadRequest(
+                                    (mediaItem.localConfiguration?.tag as MediaItemTag).title,
+                                    Util.getUtf8Bytes(estimatedContentLength.toString())
+                                )
+                                startDownload(downloadRequest)
+                                availableBytesLeft -= estimatedContentLength
+
+                                val entity = DownloadedVideoData(
+                                    heading = mediaItem.mediaMetadata.title.toString(),
+                                    thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+                                    url = mediaItem.localConfiguration?.uri.toString(),
+                                    description = mediaItem.mediaMetadata.description.toString(),
+                                    drmLicenceUrl = mediaItem.localConfiguration?.drmConfiguration?.licenseUri.toString()
+
+                                )
+
+
+                                coroutineScope.launch {
+                                    dao.insert(entity)
+                                }
+
+                            } else {
+                                throw NotEnoughSpaceException("Not enough space to download this file")
+                            }
                         }
                     }
                 }
@@ -613,3 +776,4 @@ class DownloadTracker(
 
 
 }
+

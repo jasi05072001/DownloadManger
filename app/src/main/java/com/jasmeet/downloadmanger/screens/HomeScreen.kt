@@ -64,6 +64,17 @@ fun HomeScreen(navController: NavHostController) {
 
             VerticalSpace(height = 20)
 
+            OutlinedCardComponent(
+                testTag = "Downloads",
+                text = "View Downloads",
+                onClick = {
+                    navController.navigate(Screens.DownloadScreen.route)
+                }
+            )
+
+            VerticalSpace(height = 20)
+
+
         }
     }
 

@@ -56,9 +56,8 @@ dependencies {
     ksp(libs.roomCompiler)
 
     implementation(libs.livedata)
-
-    testImplementation (libs.mockito.core)
     androidTestImplementation (libs.androidx.core.testing)
+
 }
 
 

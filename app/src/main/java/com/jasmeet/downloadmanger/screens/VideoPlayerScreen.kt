@@ -329,7 +329,8 @@ fun VideoPlayerScreen(
                                             .toggleDownloadDialogHelper(
                                                 context,
                                                 item,
-                                                videoId = "null"
+                                                videoId = "null",
+                                                quality = 720
                                             )
                                     }
                                 }

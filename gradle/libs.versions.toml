@@ -2,7 +2,6 @@
 agp = "8.1.2"
 coilCompose = "2.5.0"
 coreTesting = "2.2.0"
-mockitoCore = "3.12.4"
 navigationCompose = "2.7.4"
 navigationTesting = "2.7.5"
 org-jetbrains-kotlin-android = "1.9.10"
@@ -35,7 +34,7 @@ espresso-core = { group = "androidx.test.espresso", name = "espresso-core", vers
 lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+
 ui = { group = "androidx.compose.ui", name = "ui" }
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }

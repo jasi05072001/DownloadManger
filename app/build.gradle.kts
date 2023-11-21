@@ -46,6 +46,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+                resources.excludes.add("META-INF/*")
+
         }
     }
 }
@@ -60,7 +62,9 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
-//    implementation(project(mapOf("path" to ":downloadManager")))
+
+    implementation(project(mapOf("path" to ":downloadManager")))
+
     implementation(libs.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
@@ -82,11 +86,16 @@ dependencies {
 
     implementation(libs.lottie)
 
-
-    testImplementation (libs.mockito.core)
     androidTestImplementation (libs.androidx.core.testing)
     androidTestImplementation (libs.androidx.navigation.testing)
-    implementation ( "com.github.jasi05072001:DownloadManger:1.0")
+//    implementation ( "com.github.jasi05072001:DownloadManger:1.0")
+//    androidTestImplementation ("io.mockk:mockk-android:1.13.8")
+//    androidTestImplementation ("io.mockk:mockk-agent:1.13.8")
+
+    testImplementation ("org.mockito:mockito-core:2.19.0")
+
+
+
 
 
 }
