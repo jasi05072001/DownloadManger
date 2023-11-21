@@ -1,5 +1,13 @@
 # DownloadManager
 
+`Here are the feature that are currently in download Manager`
+
+https://docs.google.com/spreadsheets/d/14kdT-kxqBAqWv2IvVb-w0zvGMNRhSUQEBuTu1vtrSEc/edit?usp=sharing
+
+`For testing here is the link of demo App attached`
+
+https://pixeldrain.com/u/LnTieXfB
+
 This is a media 3 download manager that can download Videos from the mediaItems.
 To use this download manager you need to add the following dependencies to your app level build.gradle file,and don't forget to add
 the jitpack.io to your project level settings.gradle file.
