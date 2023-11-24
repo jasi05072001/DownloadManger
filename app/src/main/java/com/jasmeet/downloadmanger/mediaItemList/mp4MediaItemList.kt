@@ -7,9 +7,9 @@ import androidx.media3.common.MimeTypes
 import com.jasmeet.downloadmanger.utils.MediaItemTag
 
 
-val mp4ListMediaItem: List<MediaItem> = listOf(
+object Mp4ListMediaItem{
 
-    MediaItem.Builder()
+    val firstMediaItem = MediaItem.Builder()
         .setUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
         .setMimeType(MimeTypes.APPLICATION_MP4)
         .setMediaMetadata(
@@ -24,9 +24,9 @@ val mp4ListMediaItem: List<MediaItem> = listOf(
                 .build()
         )
         .setTag(MediaItemTag(-1, "Big Buck Bunny"))
-        .build(),
+        .build()
 
-    MediaItem.Builder()
+    val secondMediaItem = MediaItem.Builder()
         .setUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4")
         .setMimeType(MimeTypes.APPLICATION_MP4)
         .setMediaMetadata(
@@ -40,9 +40,9 @@ val mp4ListMediaItem: List<MediaItem> = listOf(
                 .build()
         )
         .setTag(MediaItemTag(-1, "Elephant Dream"))
-        .build(),
+        .build()
 
-    MediaItem.Builder()
+    val thirdMediaItem = MediaItem.Builder()
         .setUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4")
         .setMimeType(MimeTypes.APPLICATION_MP4)
         .setMediaMetadata(
@@ -57,6 +57,6 @@ val mp4ListMediaItem: List<MediaItem> = listOf(
                 .build()
         )
         .setTag(MediaItemTag(-1, "For Bigger Blazes"))
-        .build(),
+        .build()
 
-    )
+}

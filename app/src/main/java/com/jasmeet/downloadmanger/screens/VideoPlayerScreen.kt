@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,7 +75,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 @Composable
 fun VideoPlayerScreen(
     modifier: Modifier=Modifier,
-    navController: NavHostController,
+    navController: NavHostController? = null,
     videoUrl: String?,
     mimeType: String?,
     title: String?,
@@ -218,7 +219,8 @@ fun VideoPlayerScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            navController.popBackStack()
+                            navController?.popBackStack()
+
                         }
                     ) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
@@ -299,6 +301,7 @@ fun VideoPlayerScreen(
 
                     ) {
                     TextButton(
+                        modifier = Modifier.testTag("DownloadButton"),
                         onClick = {
                             try {
                                 if (DownloadUtil
@@ -330,7 +333,6 @@ fun VideoPlayerScreen(
                                                 context,
                                                 item,
                                                 videoId = "null",
-                                                quality = 720
                                             )
                                     }
                                 }
@@ -381,6 +383,7 @@ fun VideoPlayerScreen(
 
                 ) {
                     TextButton(
+                        modifier = Modifier.testTag("PauseButton"),
                         onClick = {
                             downloadUtil.pauseDownload(Uri.parse(videoUrl), context = context)
                             Toast.makeText(context, "Download Paused", Toast.LENGTH_SHORT).show()

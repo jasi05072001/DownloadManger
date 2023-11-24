@@ -2,4 +2,6 @@
 <resources>
 
     <style name="Theme.DownloadManger" parent="Theme.Material3.DayNight.NoActionBar" />
+
+    <style name="DownloadManager" parent="Theme.AppCompat"/>
 </resources>

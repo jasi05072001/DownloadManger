@@ -35,7 +35,7 @@ fun DrmScreen( modifier: Modifier=Modifier,navController: NavHostController) {
 
     val firstMediaItem = DrmMediaItem.firstMediaItem
     val secondMediaItem = DrmMediaItem.secondMediaItem
-    val thirdMediaItem = DrmMediaItem.thirdMediaItemTag
+    val thirdMediaItem = DrmMediaItem.thirdMediaItem
 
     val downloadUtil = remember{
         DownloadUtil.getDownloadTracker(context)

@@ -6,9 +6,9 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import com.jasmeet.downloadmanger.utils.MediaItemTag
 
-val hlsListMediaItem: List<MediaItem> = listOf(
+object HlsMediaItemList {
 
-    MediaItem.Builder()
+    val firstMediaItem = MediaItem.Builder()
         .setUri("https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8")
         .setMimeType(MimeTypes.APPLICATION_M3U8)
         .setMediaMetadata(
@@ -21,10 +21,10 @@ val hlsListMediaItem: List<MediaItem> = listOf(
                 .build()
         )
         .setTag(MediaItemTag(-1, "Google Example"))
-        .build(),
+        .build()
 
 
-    MediaItem.Builder()
+    val secondMediaItem = MediaItem.Builder()
         .setUri("https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8")
         .setMimeType(MimeTypes.APPLICATION_M3U8)
         .setMediaMetadata(
@@ -38,9 +38,9 @@ val hlsListMediaItem: List<MediaItem> = listOf(
                 .build()
         )
         .setTag(MediaItemTag(-1, "Animation Movie"))
-        .build(),
+        .build()
 
-    MediaItem.Builder()
+    val thirdMediaItem = MediaItem.Builder()
         .setUri("https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")
         .setMimeType(MimeTypes.APPLICATION_M3U8)
         .setMediaMetadata(
@@ -55,5 +55,6 @@ val hlsListMediaItem: List<MediaItem> = listOf(
                 .build()
         )
         .setTag(MediaItemTag(-1, "Big Bunny"))
-        .build(),
-)
+        .build()
+
+}

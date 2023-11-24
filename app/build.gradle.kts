@@ -50,6 +50,7 @@ android {
 
         }
     }
+    testOptions { packagingOptions { jniLibs { useLegacyPackaging = true } } }
 }
 
 dependencies {
@@ -88,11 +89,17 @@ dependencies {
 
     androidTestImplementation (libs.androidx.core.testing)
     androidTestImplementation (libs.androidx.navigation.testing)
-//    implementation ( "com.github.jasi05072001:DownloadManger:1.0")
+////    implementation ( "com.github.jasi05072001:DownloadManger:1.0")
 //    androidTestImplementation ("io.mockk:mockk-android:1.13.8")
 //    androidTestImplementation ("io.mockk:mockk-agent:1.13.8")
+//
+//    testImplementation ("org.mockito:mockito-core:2.19.0")
 
-    testImplementation ("org.mockito:mockito-core:2.19.0")
+    val mockk_version = "1.13.8"
+    testImplementation ("io.mockk:mockk:$mockk_version")
+    testImplementation ("io.mockk:mockk-agent:$mockk_version")
+    androidTestImplementation ("io.mockk:mockk-android:$mockk_version")
+    androidTestImplementation ("io.mockk:mockk-agent:$mockk_version")
 
 
 

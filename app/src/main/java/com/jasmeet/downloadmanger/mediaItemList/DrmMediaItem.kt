@@ -50,7 +50,7 @@ object DrmMediaItem {
         .setTag(MediaItemTag(-1, "Licensed-H264(cenc)"))
         .build()
 
-    val thirdMediaItemTag =  MediaItem.Builder()
+    val thirdMediaItem =  MediaItem.Builder()
         .setUri("https://storage.googleapis.com/wvmedia/cenc/hevc/tears/tears.mpd")
         .setMimeType(MimeTypes.APPLICATION_MPD)
         .setDrmConfiguration(
